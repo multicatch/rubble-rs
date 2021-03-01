@@ -1,15 +1,19 @@
 #[cfg(test)]
 mod tests {
     use crate::template::Template;
-    use crate::parser::MixedContent;
+    use crate::parser::{MixedContent, TemplateSlice};
     use std::path::PathBuf;
 
     #[test]
     fn should_find_all_evaluation_spots() {
         let path = PathBuf::from("test-assets/template");
         let template = Template::create(&path).unwrap();
-        let all_evaluation_spots: Vec<String> = template.iter().collect();
-        let expected = vec!["{{ variable }}"];
+        let all_evaluation_spots: Vec<TemplateSlice> = template.iter().collect();
+        let expected = vec![TemplateSlice {
+            value: "{{ variable }}".to_string(),
+            start_position: 14,
+            end_position: 28
+        }];
         assert_eq!(all_evaluation_spots, expected);
     }
 }
@@ -38,7 +42,7 @@ const START_PATTERN: &str = "{{";
 const END_PATTERN: &str = "}}";
 
 impl<'a> Iterator for MixedContentIterator<'a, Template> {
-    type Item = String;
+    type Item = TemplateSlice;
 
     fn next(&mut self) -> Option<Self::Item> {
         let i = self.current_position;
@@ -50,9 +54,20 @@ impl<'a> Iterator for MixedContentIterator<'a, Template> {
             if let Some(end_offset) = next_position {
                 let end_position = start_position + end_offset + END_PATTERN.len();
                 self.current_position = end_position;
-                return Some(raw_content[start_position..end_position].to_string())
+                return Some(TemplateSlice {
+                    value: raw_content[start_position..end_position].to_string(),
+                    start_position,
+                    end_position
+                })
             }
         }
         None
     }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct TemplateSlice {
+    pub value: String,
+    pub start_position: usize,
+    pub end_position: usize,
 }
