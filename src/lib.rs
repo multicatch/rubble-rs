@@ -1,4 +1,5 @@
-mod template;
+pub mod template;
+pub mod parser;
 
 #[cfg(test)]
 mod tests {
@@ -8,6 +9,3 @@ mod tests {
     }
 }
 
-pub mod rubble {
-
-}
