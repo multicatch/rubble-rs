@@ -1,6 +1,7 @@
 pub mod template;
 pub mod parser;
 pub mod evaluator;
+mod ast;
 
 #[cfg(test)]
 mod tests {

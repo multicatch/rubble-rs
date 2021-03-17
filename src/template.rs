@@ -8,9 +8,7 @@ mod tests {
         let path_buf = PathBuf::from("test-assets/template");
         let result = Template::create(&path_buf);
 
-        let expected = Template {
-            raw_content: "Some template {{ variable }}".to_string()
-        };
+        let expected = Template::from("Some template {{ variable }}".to_string());
 
         let result = result.map_err(|e| e.kind());
         assert_eq!(result, Ok(expected));
@@ -31,5 +29,11 @@ impl Template {
         Ok(Template {
             raw_content
         })
+    }
+
+    pub fn from(raw_content: String) -> Template {
+        Template {
+            raw_content
+        }
     }
 }

@@ -12,7 +12,14 @@ impl EvaluationEngine {
         }
     }
 
-    pub fn compile(template: &Template) -> String {
+    pub fn compile(template: &Template) -> Result<String, EvaluationError> {
         unimplemented!()
+    }
+}
+
+pub enum EvaluationError {
+    UnknownSymbol {
+        symbol: String,
+        position: usize
     }
 }

@@ -38,8 +38,8 @@ pub struct MixedContentIterator<'a, T> {
     current_position: usize,
 }
 
-const START_PATTERN: &str = "{{";
-const END_PATTERN: &str = "}}";
+pub const START_PATTERN: &str = "{{";
+pub const END_PATTERN: &str = "}}";
 
 impl<'a> Iterator for MixedContentIterator<'a, Template> {
     type Item = TemplateSlice;
