@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::ast::{parse_ast, SyntaxNode};
+    use crate::ast::parse_ast;
     use crate::ast::SyntaxNode::{AnonymousNode, NamedNode};
 
     #[test]
@@ -48,9 +48,35 @@ mod tests {
 
 use crate::parser::{START_PATTERN, END_PATTERN};
 use std::fmt::Debug;
-use std::process::id;
 
 /// Represents a node in an AST
+///
+/// Used to represent a template code for further evaluation.
+///
+/// Example:
+/// `(plus 1 2)` can be represented as:
+/// ```
+/// /*
+///     AnonymousNode {
+///         children: vec![
+///              NamedNode {
+///                  identifier: "plus".to_string(),
+///                  children: vec![
+///                      NamedNode {
+///                          identifier: "1".to_string(),
+///                          children: vec![],
+///                      },
+///                      NamedNode {
+///                          identifier: "2".to_string(),
+///                          children: vec![],
+///                      },
+///                  ],
+///              },
+///         ]
+///     };
+/// */
+/// ```
+///
 #[derive(Clone, Debug, PartialEq)]
 pub enum SyntaxNode {
     NamedNode {
@@ -68,6 +94,10 @@ pub enum SyntaxNode {
 /// `function arg0 arg1 arg2`, where `function` is the function name, and `arg0...` are the arguments.
 ///
 /// It also allows to use parenthesis to evaluate a nested function.
+///
+/// Examples:
+/// * `(function 1 2 3)` - interpreted as `function` call with parameters `1`, `2` and `3`
+/// * `plus 1 2 (times 3 4)` - interpreted as `1 + 2 + (3 * 4)`, given `plus` is an addition function and `times` is a multiplication function
 ///
 pub fn parse_ast(source: String) -> SyntaxNode {
     let source = source.strip_prefix(START_PATTERN).unwrap_or(source.as_str());
@@ -94,7 +124,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
         let source_remainder = &source[current_offset..];
 
         if char == '(' {
-            if let Some(mut node) = syntax_node.add_identifier_or_child(&identifier) {
+            if let Some(node) = syntax_node.add_identifier_or_child(&identifier) {
                 syntax_node = node;
             }
             let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position);

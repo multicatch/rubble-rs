@@ -6,9 +6,9 @@ mod tests {
     #[test]
     fn should_create_template() {
         let path_buf = PathBuf::from("test-assets/template");
-        let result = Template::create(&path_buf);
+        let result = Template::read_from(&path_buf);
 
-        let expected = Template::from("Some template {{ variable }}".to_string());
+        let expected = Template::from("Some template {{ variable }} - or something".to_string());
 
         let result = result.map_err(|e| e.kind());
         assert_eq!(result, Ok(expected));
@@ -24,7 +24,7 @@ pub struct Template {
 }
 
 impl Template {
-    pub fn create(path: &PathBuf) -> Result<Template, io::Error> {
+    pub fn read_from(path: &PathBuf) -> Result<Template, io::Error> {
         let raw_content = fs::read_to_string(path)?;
         Ok(Template {
             raw_content
