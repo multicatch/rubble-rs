@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use crate::ast::parse_ast;
-    use crate::ast::SyntaxNode::{AnonymousNode, NamedNode};
+    use crate::evaluator::ast::parse_ast;
+    use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
 
     #[test]
     fn should_parse_ast() {
@@ -94,6 +94,11 @@ pub enum SyntaxNode {
 /// `function arg0 arg1 arg2`, where `function` is the function name, and `arg0...` are the arguments.
 ///
 /// It also allows to use parenthesis to evaluate a nested function.
+///
+/// Reserved characters (cannot be used in names):
+/// * ` ` - space
+/// * `(` - left parenthesis
+/// * `)` - right parenthesis
 ///
 /// Examples:
 /// * `(function 1 2 3)` - interpreted as `function` call with parameters `1`, `2` and `3`

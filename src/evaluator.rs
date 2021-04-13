@@ -1,25 +1,27 @@
 use std::collections::HashMap;
-use crate::template::Template;
+use ast::SyntaxNode;
 
-pub struct EvaluationEngine {
-    variables: HashMap<String, String>
+mod ast;
+mod engine;
+
+pub trait Evaluator {
+    fn evaluate(&self, syntax_node: SyntaxNode, variables: &HashMap<String, String>) -> Result<String, EvaluationError>;
 }
 
-impl EvaluationEngine {
-    pub fn from(variables: HashMap<String, String>) -> EvaluationEngine {
-        EvaluationEngine {
-            variables
-        }
-    }
-
-    pub fn compile(template: &Template) -> Result<String, EvaluationError> {
-        unimplemented!()
-    }
-}
-
+#[derive(Debug, PartialEq)]
 pub enum EvaluationError {
+    UnexpectedElements {
+        last_expected: SyntaxNode,
+        unexpected_elements: Vec<SyntaxNode>,
+    },
     UnknownSymbol {
-        symbol: String,
-        position: usize
-    }
+        symbol: String
+    },
+    InvalidArgument {
+        argument: SyntaxNode
+    },
+}
+
+pub trait Function {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>) -> Result<String, EvaluationError>;
 }

@@ -84,6 +84,9 @@ impl<'a> EvaluableMixedContent<'a, Template> for Template {
     }
 }
 
+pub(crate) const START_PATTERN: &'static str = "{{";
+pub(crate) const END_PATTERN: &'static str = "}}";
+
 /// Used to iterate over a template and extract all code blocks.
 ///
 /// ```
@@ -109,9 +112,6 @@ impl<'a> EvaluableMixedContent<'a, Template> for Template {
 /// ```
 impl<'a> Iterator for EvaluableMixedContentIterator<&'a Template> {
     type Item = TemplateSlice<'a>;
-
-    const START_PATTERN: &'static str = "{{";
-    const END_PATTERN: &'static str = "}}";
 
     fn next(&mut self) -> Option<Self::Item> {
         let i = self.current_position;
