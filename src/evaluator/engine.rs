@@ -52,6 +52,15 @@ mod tests {
     }
 }
 
+/// Simple evaluation engine providing basic features like variable and function evaluation.
+///
+/// This engine evaluates are variables, functions and literals in a code fragment and returns
+/// a resulting String. It might also return an error when encounters unexpected identifier or
+/// a variable with parameters. When it encounters a function, it tries to evaluate it and
+/// propagates any error that it retuns.
+///
+/// This engine always uses the same Functions for evaluations, but can be supplied with different
+/// parameters during every evaluation.
 pub struct SimpleEvaluationEngine {
     functions: HashMap<String, Box<dyn Function>>
 }
