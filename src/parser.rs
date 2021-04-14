@@ -1,35 +1,3 @@
-#[cfg(test)]
-mod tests {
-    use crate::template::Template;
-    use crate::parser::{EvaluableMixedContent, TemplateSlice};
-    use std::path::PathBuf;
-
-    #[test]
-    fn should_find_all_evaluation_spots() {
-        let path = PathBuf::from("test-assets/template");
-        let template = Template::read_from(&path).unwrap();
-        let all_evaluation_spots: Vec<TemplateSlice> = template.iter().collect();
-        let expected = vec![
-            TemplateSlice::Text {
-                value: "Some template ",
-                start_position: 0,
-                end_position: 14,
-            },
-            TemplateSlice::Code {
-                value: "{{ variable }}",
-                start_position: 14,
-                end_position: 28,
-            },
-            TemplateSlice::Text {
-                value: " - or something",
-                start_position: 28,
-                end_position: 43,
-            },
-        ];
-        assert_eq!(all_evaluation_spots, expected);
-    }
-}
-
 use crate::template::Template;
 
 /// Represents content that can be both template parts and other fragments that should be evaluated.
@@ -151,3 +119,36 @@ impl<'a> Iterator for EvaluableMixedContentIterator<&'a Template> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::template::Template;
+    use crate::parser::{EvaluableMixedContent, TemplateSlice};
+    use std::path::PathBuf;
+
+    #[test]
+    fn should_find_all_evaluation_spots() {
+        let path = PathBuf::from("test-assets/template");
+        let template = Template::read_from(&path).unwrap();
+        let all_evaluation_spots: Vec<TemplateSlice> = template.iter().collect();
+        let expected = vec![
+            TemplateSlice::Text {
+                value: "Some template ",
+                start_position: 0,
+                end_position: 14,
+            },
+            TemplateSlice::Code {
+                value: "{{ variable }}",
+                start_position: 14,
+                end_position: 28,
+            },
+            TemplateSlice::Text {
+                value: " - or something",
+                start_position: 28,
+                end_position: 43,
+            },
+        ];
+        assert_eq!(all_evaluation_spots, expected);
+    }
+}
+

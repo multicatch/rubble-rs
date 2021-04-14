@@ -1,51 +1,3 @@
-#[cfg(test)]
-mod tests {
-    use crate::evaluator::ast::parse_ast;
-    use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
-
-    #[test]
-    fn should_parse_ast() {
-        let input = "{{ (list 1 2 (if a b c)) }}".to_string();
-        let actual = parse_ast(input);
-
-        let expected = AnonymousNode {
-            children: vec![
-                NamedNode {
-                    identifier: "list".to_string(),
-                    children: vec![
-                        NamedNode {
-                            identifier: "1".to_string(),
-                            children: vec![],
-                        },
-                        NamedNode {
-                            identifier: "2".to_string(),
-                            children: vec![],
-                        },
-                        NamedNode {
-                            identifier: "if".to_string(),
-                            children: vec![
-                                NamedNode {
-                                    identifier: "a".to_string(),
-                                    children: vec![],
-                                },
-                                NamedNode {
-                                    identifier: "b".to_string(),
-                                    children: vec![],
-                                },
-                                NamedNode {
-                                    identifier: "c".to_string(),
-                                    children: vec![],
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ]
-        };
-        assert_eq!(expected, actual);
-    }
-}
-
 use crate::parser::{START_PATTERN, END_PATTERN};
 use std::fmt::Debug;
 
@@ -186,5 +138,53 @@ impl SyntaxNode {
                 })
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::evaluator::ast::parse_ast;
+    use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
+
+    #[test]
+    fn should_parse_ast() {
+        let input = "{{ (list 1 2 (if a b c)) }}".to_string();
+        let actual = parse_ast(input);
+
+        let expected = AnonymousNode {
+            children: vec![
+                NamedNode {
+                    identifier: "list".to_string(),
+                    children: vec![
+                        NamedNode {
+                            identifier: "1".to_string(),
+                            children: vec![],
+                        },
+                        NamedNode {
+                            identifier: "2".to_string(),
+                            children: vec![],
+                        },
+                        NamedNode {
+                            identifier: "if".to_string(),
+                            children: vec![
+                                NamedNode {
+                                    identifier: "a".to_string(),
+                                    children: vec![],
+                                },
+                                NamedNode {
+                                    identifier: "b".to_string(),
+                                    children: vec![],
+                                },
+                                NamedNode {
+                                    identifier: "c".to_string(),
+                                    children: vec![],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ]
+        };
+        assert_eq!(expected, actual);
     }
 }

@@ -1,20 +1,3 @@
-#[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-    use crate::template::Template;
-
-    #[test]
-    fn should_create_template() {
-        let path_buf = PathBuf::from("test-assets/template");
-        let result = Template::read_from(&path_buf);
-
-        let expected = Template::from("Some template {{ variable }} - or something".to_string());
-
-        let result = result.map_err(|e| e.kind());
-        assert_eq!(result, Ok(expected));
-    }
-}
-
 use std::{fs, io};
 use std::path::PathBuf;
 
@@ -37,3 +20,21 @@ impl Template {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+    use crate::template::Template;
+
+    #[test]
+    fn should_create_template() {
+        let path_buf = PathBuf::from("test-assets/template");
+        let result = Template::read_from(&path_buf);
+
+        let expected = Template::from("Some template {{ variable }} - or something".to_string());
+
+        let result = result.map_err(|e| e.kind());
+        assert_eq!(result, Ok(expected));
+    }
+}
+

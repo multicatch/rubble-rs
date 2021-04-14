@@ -2,56 +2,6 @@ use std::collections::HashMap;
 use crate::evaluator::ast::SyntaxNode;
 use crate::evaluator::{Function, EvaluationError, Evaluator};
 
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use crate::evaluator::engine::{EvaluationError, SimpleEvaluationEngine};
-    use crate::evaluator::ast::SyntaxNode;
-    use crate::evaluator::Evaluator;
-
-    #[test]
-    fn should_evaluate_variable() {
-        let mut variables = HashMap::new();
-        variables.insert("variable".to_string(), "1234".to_string());
-        let engine = SimpleEvaluationEngine::from(HashMap::new());
-
-        // variable subsitution
-        let result = engine.evaluate(node_of("variable"), &variables);
-        assert_eq!(result.ok(), Some("1234".to_string()));
-
-        // number literal
-        let result = engine.evaluate(node_of("-12.2"), &variables);
-        assert_eq!(result.ok(), Some("-12.2".to_string()));
-
-        // string literal
-        let result = engine.evaluate(node_of("\"test\""), &variables);
-        assert_eq!(result.ok(), Some("test".to_string()));
-    }
-
-    #[test]
-    fn should_fail_evaluation() {
-        let engine = SimpleEvaluationEngine::from(HashMap::new());
-        let variables = HashMap::new();
-
-        let result = engine.evaluate(node_of("unknown"), &variables);
-        assert_eq!(result.err(), Some(EvaluationError::UnknownSymbol {
-            symbol: "unknown".to_string()
-        }));
-    }
-
-    fn node_of(identifier: &str) -> SyntaxNode {
-        SyntaxNode::AnonymousNode {
-            children: vec![
-                SyntaxNode::NamedNode {
-                    identifier: identifier.to_string(),
-                    children: vec![],
-                }
-            ],
-        }
-    }
-}
-
 /// Simple evaluation engine providing basic features like variable and function evaluation.
 ///
 /// This engine evaluates are variables, functions and literals in a code fragment and returns
@@ -124,7 +74,7 @@ fn evaluate_nested<E>(children: Vec<SyntaxNode>, evaluate_symbol: E) -> Result<S
     let child = children[0].clone();
     if children.len() > 1 {
         Result::Err(EvaluationError::UnexpectedElements {
-            last_expected: child,
+            last_expected: Some(child),
             unexpected_elements: children[1..].to_vec(),
         })
     } else {
@@ -143,5 +93,95 @@ fn extract_literal(source: &str) -> Option<&str> {
         Some(&source[1..(source.len() - 1)])
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use crate::evaluator::engine::{EvaluationError, SimpleEvaluationEngine};
+    use crate::evaluator::ast::SyntaxNode;
+    use crate::evaluator::{Evaluator, Function};
+
+    #[test]
+    fn should_evaluate_variable() {
+        let mut variables = HashMap::new();
+        variables.insert("variable".to_string(), "1234".to_string());
+        let engine = SimpleEvaluationEngine::from(HashMap::new());
+
+        // variable subsitution
+        let result = engine.evaluate(node_of("variable"), &variables);
+        assert_eq!(result.ok(), Some("1234".to_string()));
+
+        // number literal
+        let result = engine.evaluate(node_of("-12.2"), &variables);
+        assert_eq!(result.ok(), Some("-12.2".to_string()));
+
+        // string literal
+        let result = engine.evaluate(node_of("\"test\""), &variables);
+        assert_eq!(result.ok(), Some("test".to_string()));
+    }
+
+    #[test]
+    fn should_evaluate_function() {
+        let variables = HashMap::new();
+        let mut functions = HashMap::new();
+
+        // using closure as function in the evaluation engine
+        let function =
+            |_evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>| {
+                if let Some(SyntaxNode::NamedNode { identifier, .. }) = parameters.get(0) {
+                    Result::Ok(identifier.clone())
+                } else {
+                    Result::Err(EvaluationError::InvalidArguments {
+                        arguments: parameters.clone(),
+                    })
+                }
+            };
+
+        functions.insert("our_function".to_string(), Box::new(function) as Box<dyn Function>);
+        let engine = SimpleEvaluationEngine::from(functions);
+
+        // our function call
+        let node = SyntaxNode::NamedNode {
+            identifier: "our_function".to_string(),
+            children: vec![
+                SyntaxNode::NamedNode {
+                    identifier: "param".to_string(),
+                    children: vec![],
+                },
+            ],
+        };
+
+        // correct function call
+        let result = engine.evaluate(node, &variables);
+        assert_eq!(result.ok(), Some("param".to_string()));
+
+        // incorrect function call
+        let result = engine.evaluate(node_of("our_function"), &variables);
+        assert_eq!(result.err(), Some(EvaluationError::InvalidArguments { arguments: vec![] }))
+    }
+
+    #[test]
+    fn should_fail_evaluation() {
+        let engine = SimpleEvaluationEngine::from(HashMap::new());
+        let variables = HashMap::new();
+
+        let result = engine.evaluate(node_of("unknown"), &variables);
+        assert_eq!(result.err(), Some(EvaluationError::UnknownSymbol {
+            symbol: "unknown".to_string()
+        }));
+    }
+
+    fn node_of(identifier: &str) -> SyntaxNode {
+        SyntaxNode::AnonymousNode {
+            children: vec![
+                SyntaxNode::NamedNode {
+                    identifier: identifier.to_string(),
+                    children: vec![],
+                }
+            ],
+        }
     }
 }

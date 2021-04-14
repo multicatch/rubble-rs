@@ -20,14 +20,14 @@ pub trait Evaluator {
 #[derive(Debug, PartialEq)]
 pub enum EvaluationError {
     UnexpectedElements {
-        last_expected: SyntaxNode,
+        last_expected: Option<SyntaxNode>,
         unexpected_elements: Vec<SyntaxNode>,
     },
     UnknownSymbol {
         symbol: String
     },
-    InvalidArgument {
-        argument: SyntaxNode
+    InvalidArguments {
+        arguments: Vec<SyntaxNode>
     },
 }
 
@@ -43,4 +43,10 @@ pub enum EvaluationError {
 /// them independently.
 pub trait Function {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>) -> Result<String, EvaluationError>;
+}
+
+impl<F> Function for F where F: Fn(&dyn Evaluator, &Vec<SyntaxNode>) -> Result<String, EvaluationError> {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>) -> Result<String, EvaluationError> {
+        self(evaluator, parameters)
+    }
 }
