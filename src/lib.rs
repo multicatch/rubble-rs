@@ -1,6 +1,6 @@
 pub mod template;
-pub mod parser;
 pub mod evaluator;
+pub mod compiler;
 
 #[cfg(test)]
 mod tests {

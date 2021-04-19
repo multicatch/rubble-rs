@@ -5,12 +5,7 @@ use crate::template::Template;
 /// It can be used to represent some template source that has mixed content - eg. text, code,
 /// other templates and needs to be evaluated/compiled.
 ///
-pub trait EvaluableMixedContent<'a, T> {
-    type ContentIterator;
-
-    /// Iterator that returns next spot that needs evaluation.
-    fn iter(&'a self) -> Self::ContentIterator;
-}
+pub trait EvaluableMixedContent<T>: IntoIterator {}
 
 /// A slice of template that can be returned by an iterator.
 ///
@@ -36,15 +31,18 @@ pub enum TemplateSlice<'a> {
 ///
 /// It can be used to return all evaluation spots from a template. For example, there is an implementation
 /// that looks for all embedded code fragments and returns them as `TemplateFragment`s for further evaluation.
-pub struct EvaluableMixedContentIterator<T> {
-    source: T,
+pub struct EvaluableMixedContentIterator<'a, T> {
+    source: &'a T,
     current_position: usize,
 }
 
-impl<'a> EvaluableMixedContent<'a, Template> for Template {
-    type ContentIterator = EvaluableMixedContentIterator<&'a Template>;
+impl<'a> EvaluableMixedContent<&'a Template> for &'a Template {}
 
-    fn iter(&'a self) -> Self::ContentIterator {
+impl<'a> IntoIterator for &'a Template {
+    type Item = TemplateSlice<'a>;
+    type IntoIter = EvaluableMixedContentIterator<'a, Template>;
+
+    fn into_iter(self) -> Self::IntoIter {
         EvaluableMixedContentIterator {
             source: &self,
             current_position: 0,
@@ -59,10 +57,10 @@ pub(crate) const END_PATTERN: &'static str = "}}";
 ///
 /// ```
 /// use rubble_rs::template::Template;
-/// use rubble_rs::parser::{EvaluableMixedContent, TemplateSlice};
+/// use rubble_rs::template::content::{EvaluableMixedContent, TemplateSlice};
 ///
 /// let template = Template::from("Some template {{ variable }}".to_string());
-/// let all_evaluation_spots: Vec<TemplateSlice> = template.iter().collect();
+/// let all_evaluation_spots: Vec<TemplateSlice> = template.into_iter().collect();
 /// let expected = vec![
 ///             TemplateSlice::Text {
 ///                 value: "Some template ",
@@ -78,7 +76,7 @@ pub(crate) const END_PATTERN: &'static str = "}}";
 ///
 /// assert_eq!(all_evaluation_spots, expected);
 /// ```
-impl<'a> Iterator for EvaluableMixedContentIterator<&'a Template> {
+impl<'a> Iterator for EvaluableMixedContentIterator<'a, Template> {
     type Item = TemplateSlice<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -123,14 +121,14 @@ impl<'a> Iterator for EvaluableMixedContentIterator<&'a Template> {
 #[cfg(test)]
 mod tests {
     use crate::template::Template;
-    use crate::parser::{EvaluableMixedContent, TemplateSlice};
+    use crate::template::content::TemplateSlice;
     use std::path::PathBuf;
 
     #[test]
     fn should_find_all_evaluation_spots() {
         let path = PathBuf::from("test-assets/template");
         let template = Template::read_from(&path).unwrap();
-        let all_evaluation_spots: Vec<TemplateSlice> = template.iter().collect();
+        let all_evaluation_spots: Vec<TemplateSlice> = (&template).into_iter().collect();
         let expected = vec![
             TemplateSlice::Text {
                 value: "Some template ",

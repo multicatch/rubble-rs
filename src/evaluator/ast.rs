@@ -1,4 +1,4 @@
-use crate::parser::{START_PATTERN, END_PATTERN};
+use crate::template::content::{START_PATTERN, END_PATTERN};
 use std::fmt::Debug;
 
 /// Represents a node in an AST
@@ -56,8 +56,8 @@ pub enum SyntaxNode {
 /// * `(function 1 2 3)` - interpreted as `function` call with parameters `1`, `2` and `3`
 /// * `plus 1 2 (times 3 4)` - interpreted as `1 + 2 + (3 * 4)`, given `plus` is an addition function and `times` is a multiplication function
 ///
-pub fn parse_ast(source: String) -> SyntaxNode {
-    let source = source.strip_prefix(START_PATTERN).unwrap_or(source.as_str());
+pub fn parse_ast(source: &str) -> SyntaxNode {
+    let source = source.strip_prefix(START_PATTERN).unwrap_or(source);
     let source = source.strip_suffix(END_PATTERN).unwrap_or(source);
 
     next_node_of(source, 0).0
@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn should_parse_ast() {
-        let input = "{{ (list 1 2 (if a b c)) }}".to_string();
+        let input = "{{ (list 1 2 (if a b c)) }}";
         let actual = parse_ast(input);
 
         let expected = AnonymousNode {

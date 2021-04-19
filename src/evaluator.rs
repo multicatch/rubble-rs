@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use ast::SyntaxNode;
 
-mod ast;
-mod engine;
+pub mod ast;
+pub mod engine;
 
 /// Trait that describes an ability to evaluate code in template.
 ///

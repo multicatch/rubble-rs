@@ -1,6 +1,8 @@
 use std::{fs, io};
 use std::path::PathBuf;
 
+pub mod content;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct Template {
     pub raw_content: String
@@ -24,6 +26,7 @@ impl Template {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+
     use crate::template::Template;
 
     #[test]
