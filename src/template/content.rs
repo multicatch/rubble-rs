@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn should_find_all_evaluation_spots() {
-        let path = PathBuf::from("test-assets/template");
+        let path = PathBuf::from("test-assets/simple-template");
         let template = Template::read_from(&path).unwrap();
         let all_evaluation_spots: Vec<TemplateSlice> = (&template).into_iter().collect();
         let expected = vec![

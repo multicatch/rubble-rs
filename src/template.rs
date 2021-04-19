@@ -3,6 +3,10 @@ use std::path::PathBuf;
 
 pub mod content;
 
+/// A simple template that represents a source text.
+///
+/// This template is a raw template that can be reused with different variables or Evaluators.
+/// It contains a raw source that can be parsed.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Template {
     pub raw_content: String
@@ -31,7 +35,7 @@ mod tests {
 
     #[test]
     fn should_create_template() {
-        let path_buf = PathBuf::from("test-assets/template");
+        let path_buf = PathBuf::from("test-assets/simple-template");
         let result = Template::read_from(&path_buf);
 
         let expected = Template::from("Some template {{ variable }} - or something".to_string());

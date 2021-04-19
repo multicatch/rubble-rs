@@ -25,12 +25,12 @@ impl SimpleEvaluationEngine {
     fn evaluate_symbol(&self, variables: &HashMap<String, String>, identifier: &str, parameters: Vec<SyntaxNode>) -> Result<String, EvaluationError> {
         match variables.get(identifier).cloned() {
             Some(result) => Ok(result),
-            None => self.evaluate_function_or_literal(identifier, parameters),
+            None => self.evaluate_function_or_literal(identifier, parameters, variables),
         }
     }
 
-    fn evaluate_function_or_literal(&self, identifier: &str, parameters: Vec<SyntaxNode>) -> Result<String, EvaluationError> {
-        self.evaluate_function(identifier, parameters)
+    fn evaluate_function_or_literal(&self, identifier: &str, parameters: Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Result<String, EvaluationError> {
+        self.evaluate_function(identifier, parameters, variables)
             .unwrap_or_else(|| {
                 extract_literal(identifier)
                     .map(|it| it.to_string())
@@ -40,8 +40,8 @@ impl SimpleEvaluationEngine {
             })
     }
 
-    fn evaluate_function(&self, identifier: &str, parameters: Vec<SyntaxNode>) -> Option<Result<String, EvaluationError>> {
-        Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters))
+    fn evaluate_function(&self, identifier: &str, parameters: Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Option<Result<String, EvaluationError>> {
+        Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters, variables))
     }
 }
 
@@ -130,7 +130,7 @@ mod tests {
 
         // using closure as function in the evaluation engine
         let function =
-            |_evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>| {
+            |_evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, _variables: &HashMap<String, String>| {
                 if let Some(SyntaxNode::NamedNode { identifier, .. }) = parameters.get(0) {
                     Result::Ok(identifier.clone())
                 } else {
