@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::evaluator::Function;
 use crate::template::Template;
 use crate::evaluator::engine::SimpleEvaluationEngine;
-use crate::compiler::{TemplateCompiler, Compiler};
+use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
 use std::error::Error;
 
 pub mod template;
@@ -23,11 +23,36 @@ pub mod compiler;
 pub fn compile_template_from_file(file: PathBuf, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, Box<dyn Error>> {
     let template = Template::read_from(&file)
         .map_err(|error| Box::new(error))?;
+
+    compile_template_from(template, variables, functions)
+        .map_err(|error| Box::new(error) as Box<dyn Error>)
+}
+
+/// Compiles template from String.
+///
+/// It creates a Template instance on the fly and then compiles it.
+///
+/// For some special cases consider using SimpleEvaluationEngine, TemplateCompiler or other specific
+/// Evaluator and Compiler traits implementations.
+///
+/// Template can look like the following: `Some template {{ variable }} - or something`
+/// Code that will be evaluated should be put between `{{` and `}}`.
+pub fn compile_template_from_string(template: String, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, CompilationError> {
+    compile_template_from(Template::from(template), variables, functions)
+}
+
+/// Compiles template from Template.
+///
+/// For some special cases consider using SimpleEvaluationEngine, TemplateCompiler or other specific
+/// Evaluator and Compiler traits implementations.
+///
+/// Template can look like the following: `Some template {{ variable }} - or something`
+/// Code that will be evaluated should be put between `{{` and `}}`.
+pub fn compile_template_from(template: Template, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, CompilationError> {
     let engine = SimpleEvaluationEngine::from(functions);
     let compiler = TemplateCompiler::new(engine);
 
     compiler.compile(&template, &variables)
-        .map_err(|error| Box::new(error) as Box<dyn Error>)
 }
 
 #[cfg(test)]

@@ -7,8 +7,7 @@ use std::fmt::Debug;
 ///
 /// Example:
 /// `(plus 1 2)` can be represented as:
-/// ```
-/// /*
+/// ```text
 ///     AnonymousNode {
 ///         children: vec![
 ///              NamedNode {
@@ -26,7 +25,6 @@ use std::fmt::Debug;
 ///              },
 ///         ]
 ///     };
-/// */
 /// ```
 ///
 #[derive(Clone, Debug, PartialEq)]
