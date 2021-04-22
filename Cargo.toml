@@ -1,9 +1,15 @@
 [package]
 name = "rubble-rs"
+description = "A template engine to compile text and evaluate code from template files"
 version = "0.1.0"
 authors = ["multicatch <cezaryre@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license-file = "LICENSE"
+homepage = "https://github.com/multicatch/rubble-rs"
+repository = "https://github.com/multicatch/rubble-rs"
+readme = "README.md"
+exclude = [
+    "test-assets/*"
+]
 
 [dependencies]
