@@ -24,7 +24,7 @@ jobs:
         with:
           args: cargo build --release
 
-  documentation:
+  deploy_doc:
     name: Deploy documentation
     if: 'refs/heads/master' == github.ref
     runs-on: ubuntu-latest
