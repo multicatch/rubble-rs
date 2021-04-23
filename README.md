@@ -1,4 +1,4 @@
-# rubble-rs
+# rubble-templates
 
 A template engine in Rust.
 

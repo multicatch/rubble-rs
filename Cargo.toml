@@ -1,5 +1,5 @@
 [package]
-name = "rubble-rs"
+name = "rubble-templates"
 description = "A template engine to compile text and evaluate code from template files"
 version = "0.1.0"
 authors = ["multicatch <cezaryre@gmail.com>"]
@@ -7,7 +7,7 @@ edition = "2018"
 license-file = "LICENSE"
 homepage = "https://github.com/multicatch/rubble-rs"
 repository = "https://github.com/multicatch/rubble-rs"
-documentation = "https://multicatch.github.io/rubble-rs/rubble_rs/"
+documentation = "https://multicatch.github.io/rubble-rs/rubble_templates/"
 readme = "README.md"
 exclude = [
     "test-assets/*"
