@@ -81,5 +81,5 @@ jobs:
 
       - name: Publish to crates.io
         run: cargo login CRATES_TOKEN && cargo publish
-        with:
+        env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
