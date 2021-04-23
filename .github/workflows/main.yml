@@ -40,6 +40,7 @@ jobs:
     name: Deploy documentation
     runs-on: ubuntu-latest
     needs: [ build ]
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - uses: actions/checkout@v2
@@ -55,3 +56,30 @@ jobs:
         with:
           branch: gh-pages
           folder: 'target/doc'
+
+  deploy_crate:
+    name: Deploy crate
+    runs-on: ubuntu-latest
+    needs: [ build, deploy_doc ]
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install latest rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Download compiled files
+        uses: actions/download-artifact@v2
+        with:
+          name: rubble-rs-target
+          path: target
+
+      - name: Publish to crates.io
+        run: cargo login CRATES_TOKEN && cargo publish
+        with:
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
