@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["SyntaxNode","Represents a node in an AST"]],"fn":[["parse_ast","Used for parsing AST for further evaluation."]]});

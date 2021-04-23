@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["EvaluationError","An error that can happen during evaluation."]],"mod":[["ast",""],["engine",""]],"trait":[["Evaluator","Trait that describes an ability to evaluate code in template."],["Function","A function that can be used to add features to the template."]]});

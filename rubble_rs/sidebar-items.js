@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["compile_template_from","Compiles template from Template."],["compile_template_from_file","Compiles template from file."],["compile_template_from_string","Compiles template from String."]],"mod":[["compiler",""],["evaluator",""],["template",""]]});

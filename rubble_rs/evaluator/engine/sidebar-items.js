@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SimpleEvaluationEngine","Simple evaluation engine providing basic features like variable and function evaluation."]]});

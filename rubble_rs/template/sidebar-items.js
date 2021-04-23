@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["content",""]],"struct":[["Template","A simple template that represents a source text."]]});

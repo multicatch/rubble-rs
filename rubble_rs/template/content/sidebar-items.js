@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TemplateSlice","A slice of template that can be returned by an iterator."]],"struct":[["EvaluableMixedContentIterator","Iterates over some template source and returns code fragments that needs evaluation."]],"trait":[["EvaluableMixedContent","Represents content that can be both template parts and other fragments that should be evaluated."]]});
