@@ -1,5 +1,5 @@
 use std::{fs, io};
-use std::path::PathBuf;
+use std::path::Path;
 
 pub mod content;
 
@@ -13,7 +13,7 @@ pub struct Template {
 }
 
 impl Template {
-    pub fn read_from(path: &PathBuf) -> Result<Template, io::Error> {
+    pub fn read_from(path: &Path) -> Result<Template, io::Error> {
         let raw_content = fs::read_to_string(path)?;
         Ok(Template {
             raw_content

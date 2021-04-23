@@ -112,7 +112,7 @@ impl SyntaxNode {
         }
     }
 
-    fn add_identifier_or_child(&self, new_identifier: &String) -> Option<SyntaxNode> {
+    fn add_identifier_or_child(&self, new_identifier: &str) -> Option<SyntaxNode> {
         if new_identifier.is_empty() {
             return None;
         }
@@ -120,14 +120,14 @@ impl SyntaxNode {
         match self {
             SyntaxNode::AnonymousNode { children } =>
                 Some(SyntaxNode::NamedNode {
-                    identifier: new_identifier.clone(),
+                    identifier: new_identifier.to_string(),
                     children: children.clone(),
                 }),
 
             SyntaxNode::NamedNode { identifier, children } => {
                 let mut children = children.clone();
                 children.push(SyntaxNode::NamedNode {
-                    identifier: new_identifier.clone(),
+                    identifier: new_identifier.to_string(),
                     children: vec![],
                 });
                 Some(SyntaxNode::NamedNode {

@@ -48,7 +48,7 @@ impl SimpleEvaluationEngine {
 impl Evaluator for SimpleEvaluationEngine {
     fn evaluate(&self, syntax_node: SyntaxNode, variables: &HashMap<String, String>) -> Result<String, EvaluationError> {
         evaluate(syntax_node, |identifier, parameters|
-            self.evaluate_symbol(variables, identifier, parameters)
+            self.evaluate_symbol(variables, identifier, parameters),
         )
     }
 }
@@ -77,19 +77,17 @@ fn evaluate_nested<E>(children: Vec<SyntaxNode>, evaluate_symbol: E) -> Result<S
             last_expected: Some(child),
             unexpected_elements: children[1..].to_vec(),
         })
+    } else if let SyntaxNode::NamedNode { identifier, children } = child {
+        evaluate_symbol(identifier.as_str(), children)
     } else {
-        if let SyntaxNode::NamedNode { identifier, children } = child {
-            evaluate_symbol(identifier.as_str(), children)
-        } else {
-            evaluate(child, evaluate_symbol)
-        }
+        evaluate(child, evaluate_symbol)
     }
 }
 
 fn extract_literal(source: &str) -> Option<&str> {
     if source.parse::<f64>().is_ok() {
         Some(source)
-    } else if source.starts_with("\"") && source.ends_with("\"") {
+    } else if source.starts_with('"') && source.ends_with('"') {
         Some(&source[1..(source.len() - 1)])
     } else {
         None

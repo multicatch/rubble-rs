@@ -21,8 +21,7 @@ pub mod compiler;
 /// Template can look like the following: `Some template {{ variable }} - or something`
 /// Code that will be evaluated should be put between `{{` and `}}`.
 pub fn compile_template_from_file(file: PathBuf, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, Box<dyn Error>> {
-    let template = Template::read_from(&file)
-        .map_err(|error| Box::new(error))?;
+    let template = Template::read_from(&file)?;
 
     compile_template_from(template, variables, functions)
         .map_err(|error| Box::new(error) as Box<dyn Error>)

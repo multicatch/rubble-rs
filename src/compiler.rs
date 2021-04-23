@@ -68,7 +68,7 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
             result.push_str(compiled.as_str());
         }
 
-        return Ok(result);
+        Ok(result)
     }
 }
 

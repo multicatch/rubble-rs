@@ -42,11 +42,12 @@ pub enum EvaluationError {
 /// Parameter evaluation with a supplied Evaluator is optional and a given Function can evaluate
 /// them independently.
 pub trait Function {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Result<String, EvaluationError>;
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Result<String, EvaluationError>;
 }
 
 impl<F> Function for F where F: Fn(&dyn Evaluator, &Vec<SyntaxNode>, &HashMap<String, String>) -> Result<String, EvaluationError> {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Result<String, EvaluationError> {
-        self(evaluator, parameters, variables)
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Result<String, EvaluationError> {
+        let vec = parameters.to_vec();
+        self(evaluator, &vec, variables)
     }
 }

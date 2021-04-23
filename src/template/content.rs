@@ -50,8 +50,8 @@ impl<'a> IntoIterator for &'a Template {
     }
 }
 
-pub(crate) const START_PATTERN: &'static str = "{{";
-pub(crate) const END_PATTERN: &'static str = "}}";
+pub(crate) const START_PATTERN: &str = "{{";
+pub(crate) const END_PATTERN: &str = "}}";
 
 /// Used to iterate over a template and extract all code blocks.
 ///
