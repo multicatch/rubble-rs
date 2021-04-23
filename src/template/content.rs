@@ -56,8 +56,8 @@ pub(crate) const END_PATTERN: &str = "}}";
 /// Used to iterate over a template and extract all code blocks.
 ///
 /// ```
-/// use rubble_rs::template::Template;
-/// use rubble_rs::template::content::{EvaluableMixedContent, TemplateSlice};
+/// use rubble_templates::template::Template;
+/// use rubble_templates::template::content::{EvaluableMixedContent, TemplateSlice};
 ///
 /// let template = Template::from("Some template {{ variable }}".to_string());
 /// let all_evaluation_spots: Vec<TemplateSlice> = template.into_iter().collect();
