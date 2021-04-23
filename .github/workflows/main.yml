@@ -26,7 +26,6 @@ jobs:
 
   deploy_doc:
     name: Deploy documentation
-    if: 'refs/heads/master' == github.ref
     runs-on: ubuntu-latest
     needs: [ build ]
 
