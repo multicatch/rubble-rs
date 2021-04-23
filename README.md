@@ -44,7 +44,7 @@ Those are handy functions to compile templates, but for some specialized cases, 
 
 ### Syntax
 
-By default, rubble-rs while parsing a template looks for all blocks starting `{{` and ending with `}}` those are marked as an evaluation spots with code that can be evaluated by an `Evaluator`.
+By default, rubble-templates while parsing a template looks for all blocks starting `{{` and ending with `}}` those are marked as an evaluation spots with code that can be evaluated by an `Evaluator`.
 
 Given the following example:
 ```text
@@ -59,7 +59,7 @@ This template contains three parts:
 The second part will be passed to a given `Evaluator` by the `Compiler` in order to get a String output.
 The code fragment will be substituted with the output.
 
-The rubble-rs library can also evaluate more sophisticated code.
+The rubble-templates library can also evaluate more sophisticated code.
 You can pass your own functions that can enrich the template.
 
 This library uses Lisp-like syntax during evaluation.
@@ -83,7 +83,7 @@ The result is: {{ multiply (plus 1 2) 3 }}
 ### Customizing
 
 Compilation contains three phases:
-* `parsing` - done by the template iterator, eg. `EvaluableMixedContentIterator'a, T>`, which can extract template parts,
+* `parsing` - done by the template iterator, eg. `EvaluableMixedContentIterator<'a, T>`, which can extract template parts,
 * `evaluation` - done by the `Evaluator`, which evaluates all code found by the iterator,
 * `compiling` - done by the `Compiler`, which uses iterator to parse the content, feeds the `Evaluator` and then joins everything into output text.
 
