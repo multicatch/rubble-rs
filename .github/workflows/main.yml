@@ -48,9 +48,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: rubble-rs-target
-
-      - name: Test what's in the workspace
-        run: ls -la && ls -la target
+          path: target
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.1
