@@ -80,6 +80,6 @@ jobs:
           path: target
 
       - name: Publish to crates.io
-        run: cargo login CRATES_TOKEN && cargo publish
+        run: cargo login $CRATES_TOKEN && cargo publish
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
