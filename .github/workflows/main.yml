@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: rubble-rs-target
-          path: 'target/'
+          path: 'target/**/*'
 
   deploy_doc:
     name: Deploy documentation
@@ -50,10 +50,7 @@ jobs:
           name: rubble-rs-target
 
       - name: Deploy to GitHub Pages
-        if: success()
-        uses: crazy-max/ghaction-github-pages@v2
+        uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
-          target_branch: gh-pages
-          build_dir: target/doc
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: 'target/doc'
