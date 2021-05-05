@@ -1,6 +1,6 @@
 use crate::template::content::{EvaluableMixedContent, EvaluableMixedContentIterator, TemplateSlice};
 use std::collections::HashMap;
-use crate::evaluator::{Evaluator, SyntaxError};
+use crate::evaluator::{Evaluator, SyntaxError, EvaluationError};
 use crate::template::Template;
 use crate::evaluator::ast::parse_ast;
 use std::error::Error;
