@@ -9,16 +9,20 @@ use std::fmt::Debug;
 /// `(plus 1 2)` can be represented as:
 /// ```text
 ///     AnonymousNode {
+///         starts_at: 0,
 ///         children: vec![
 ///              NamedNode {
 ///                  identifier: "plus".to_string(),
+///                  starts_at: 1,
 ///                  children: vec![
 ///                      NamedNode {
 ///                          identifier: "1".to_string(),
+///                          starts_at: 6,
 ///                          children: vec![],
 ///                      },
 ///                      NamedNode {
 ///                          identifier: "2".to_string(),
+///                          starts_at: 8,
 ///                          children: vec![],
 ///                      },
 ///                  ],
@@ -31,10 +35,12 @@ use std::fmt::Debug;
 pub enum SyntaxNode {
     NamedNode {
         identifier: String,
+        starts_at: usize,
         children: Vec<SyntaxNode>,
     },
     AnonymousNode {
-        children: Vec<SyntaxNode>
+        starts_at: usize,
+        children: Vec<SyntaxNode>,
     },
 }
 
@@ -66,12 +72,16 @@ struct SyntaxScanResult(SyntaxNode, usize);
 fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
     let mut syntax_node = SyntaxNode::AnonymousNode {
         children: vec![],
+        starts_at: offset
     };
     let mut identifier = "".to_string();
+    let mut identifier_start: usize = offset;
     let mut skip_end: usize = 0;
+    let mut source_length: usize = 0;
 
     for (index, char) in source.chars().enumerate() {
         let position = offset + index;
+        source_length += 1;
         if position <= skip_end {
             continue;
         }
@@ -79,7 +89,10 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
         let source_remainder = &source[current_offset..];
 
         if char == '(' {
-            if let Some(node) = syntax_node.add_identifier_or_child(&identifier) {
+            if let Some(node) = syntax_node.add_identifier_or_child(
+                &identifier,
+                identifier_start + 1
+            ) {
                 syntax_node = node;
             }
             let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position);
@@ -87,10 +100,14 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
             syntax_node.add_child(child);
         } else {
             if char == ' ' || char == ')' {
-                if let Some(node) = syntax_node.add_identifier_or_child(&identifier) {
+                if let Some(node) = syntax_node.add_identifier_or_child(
+                    &identifier,
+                    identifier_start + 1
+                ) {
                     syntax_node = node;
                 }
                 identifier.clear();
+                identifier_start = position + 1;
             } else {
                 identifier.push(char)
             }
@@ -101,38 +118,41 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
         }
     }
 
-    SyntaxScanResult(syntax_node, offset + source.len())
+    SyntaxScanResult(syntax_node, offset + source_length)
 }
 
 impl SyntaxNode {
     fn add_child(&mut self, child: SyntaxNode) {
         match self {
-            SyntaxNode::AnonymousNode { children } => children.push(child),
+            SyntaxNode::AnonymousNode { children, .. } => children.push(child),
             SyntaxNode::NamedNode { children, .. } => children.push(child),
         }
     }
 
-    fn add_identifier_or_child(&self, new_identifier: &str) -> Option<SyntaxNode> {
+    fn add_identifier_or_child(&self, new_identifier: &str, identifier_starts_at: usize) -> Option<SyntaxNode> {
         if new_identifier.is_empty() {
             return None;
         }
 
         match self {
-            SyntaxNode::AnonymousNode { children } =>
+            SyntaxNode::AnonymousNode { children, .. } =>
                 Some(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: children.clone(),
+                    starts_at: identifier_starts_at
                 }),
 
-            SyntaxNode::NamedNode { identifier, children } => {
+            SyntaxNode::NamedNode { identifier, children, starts_at } => {
                 let mut children = children.clone();
                 children.push(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: vec![],
+                    starts_at: identifier_starts_at
                 });
                 Some(SyntaxNode::NamedNode {
                     identifier: identifier.clone(),
                     children,
+                    starts_at: *starts_at,
                 })
             }
         }
@@ -150,31 +170,39 @@ mod tests {
         let actual = parse_ast(input);
 
         let expected = AnonymousNode {
+            starts_at: 0,
             children: vec![
                 NamedNode {
                     identifier: "list".to_string(),
+                    starts_at: 2,
                     children: vec![
                         NamedNode {
                             identifier: "1".to_string(),
                             children: vec![],
+                            starts_at: 7
                         },
                         NamedNode {
                             identifier: "2".to_string(),
+                            starts_at: 9,
                             children: vec![],
                         },
                         NamedNode {
                             identifier: "if".to_string(),
+                            starts_at: 11,
                             children: vec![
                                 NamedNode {
                                     identifier: "a".to_string(),
+                                    starts_at: 14,
                                     children: vec![],
                                 },
                                 NamedNode {
                                     identifier: "b".to_string(),
+                                    starts_at: 16,
                                     children: vec![],
                                 },
                                 NamedNode {
                                     identifier: "c".to_string(),
+                                    starts_at: 18,
                                     children: vec![],
                                 },
                             ],

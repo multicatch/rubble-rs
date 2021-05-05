@@ -59,7 +59,7 @@ mod tests {
     use crate::compile_template_from_file;
     use std::path::PathBuf;
     use std::collections::HashMap;
-    use crate::evaluator::{Function, Evaluator, EvaluationError};
+    use crate::evaluator::{Function, Evaluator, SyntaxError};
     use crate::evaluator::ast::SyntaxNode;
 
     #[test]
@@ -76,7 +76,7 @@ mod tests {
         assert_eq!(result.ok(), Some("Some template. Hello world!.\n\nThis shows a function evaluation usage example:\n2 + 2 = 4".to_string()));
     }
 
-    fn plus_function(evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Result<String, EvaluationError> {
+    fn plus_function(evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
         Ok(
             parameters.iter()
                 .map(|node|
