@@ -107,7 +107,7 @@ compiler.compile(&template, &variables)
 ### Custom functions
 
 Evaluator can be extended with functions by using custom `Function` trait implementations.
-To make this process easier, there is default implementation for `F where F: Fn(&dyn Evaluator, &Vec<SyntaxNode>, &HashMap<String, String>, usize) -> Result<String, EvaluationError>`,
+To make this process easier, there is default implementation for `F where F: Fn(&dyn Evaluator, &Vec<SyntaxNode>, &HashMap<String, String>, usize) -> Result<String, SyntaxError>`,
 so this means that you can use lambdas or Rust functions.
 
 Example with function:
@@ -127,7 +127,7 @@ fn should_compile_template() {
     assert_eq!(result.ok(), Some("Hello world!.\n2 + 2 = 4".to_string()));
 }
 
-fn plus_function(evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>, _offset: usize) -> Result<String, EvaluationError> {
+fn plus_function(evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
     Ok(
         parameters.iter()
             .map(|node|
