@@ -189,6 +189,34 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">template</span>::<span class="ident">content</span>::{<span class="ident">START_PATTERN</span>, <span class="ident">END_PATTERN</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
@@ -201,16 +229,20 @@
 <span class="doccomment">/// `(plus 1 2)` can be represented as:</span>
 <span class="doccomment">/// ```text</span>
 <span class="doccomment">///     AnonymousNode {</span>
+<span class="doccomment">///         starts_at: 0,</span>
 <span class="doccomment">///         children: vec![</span>
 <span class="doccomment">///              NamedNode {</span>
 <span class="doccomment">///                  identifier: &quot;plus&quot;.to_string(),</span>
+<span class="doccomment">///                  starts_at: 1,</span>
 <span class="doccomment">///                  children: vec![</span>
 <span class="doccomment">///                      NamedNode {</span>
 <span class="doccomment">///                          identifier: &quot;1&quot;.to_string(),</span>
+<span class="doccomment">///                          starts_at: 6,</span>
 <span class="doccomment">///                          children: vec![],</span>
 <span class="doccomment">///                      },</span>
 <span class="doccomment">///                      NamedNode {</span>
 <span class="doccomment">///                          identifier: &quot;2&quot;.to_string(),</span>
+<span class="doccomment">///                          starts_at: 8,</span>
 <span class="doccomment">///                          children: vec![],</span>
 <span class="doccomment">///                      },</span>
 <span class="doccomment">///                  ],</span>
@@ -223,10 +255,12 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SyntaxNode</span> {
     <span class="ident">NamedNode</span> {
         <span class="ident">identifier</span>: <span class="ident">String</span>,
+        <span class="ident">starts_at</span>: <span class="ident">usize</span>,
         <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>,
     },
     <span class="ident">AnonymousNode</span> {
-        <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>
+        <span class="ident">starts_at</span>: <span class="ident">usize</span>,
+        <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>,
     },
 }
 
@@ -258,12 +292,16 @@
 <span class="kw">fn</span> <span class="ident">next_node_of</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyntaxScanResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">syntax_node</span> <span class="op">=</span> <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> {
         <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+        <span class="ident">starts_at</span>: <span class="ident">offset</span>
     };
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">identifier</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">identifier_start</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">offset</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">skip_end</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source_length</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">char</span>) <span class="kw">in</span> <span class="ident">source</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">index</span>;
+        <span class="ident">source_length</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">skip_end</span> {
             <span class="kw">continue</span>;
         }
@@ -271,7 +309,10 @@
         <span class="kw">let</span> <span class="ident">source_remainder</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[<span class="ident">current_offset</span>..];
 
         <span class="kw">if</span> <span class="ident">char</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;(&#39;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">syntax_node</span>.<span class="ident">add_identifier_or_child</span>(<span class="kw-2">&amp;</span><span class="ident">identifier</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">syntax_node</span>.<span class="ident">add_identifier_or_child</span>(
+                <span class="kw-2">&amp;</span><span class="ident">identifier</span>,
+                <span class="ident">identifier_start</span> <span class="op">+</span> <span class="number">1</span>
+            ) {
                 <span class="ident">syntax_node</span> <span class="op">=</span> <span class="ident">node</span>;
             }
             <span class="kw">let</span> <span class="ident">SyntaxScanResult</span>(<span class="ident">child</span>, <span class="ident">skip_pos</span>) <span class="op">=</span> <span class="ident">next_node_of</span>(<span class="ident">source_remainder</span>, <span class="ident">position</span>);
@@ -279,10 +320,14 @@
             <span class="ident">syntax_node</span>.<span class="ident">add_child</span>(<span class="ident">child</span>);
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">char</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39; &#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">char</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;)&#39;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">syntax_node</span>.<span class="ident">add_identifier_or_child</span>(<span class="kw-2">&amp;</span><span class="ident">identifier</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">syntax_node</span>.<span class="ident">add_identifier_or_child</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">identifier</span>,
+                    <span class="ident">identifier_start</span> <span class="op">+</span> <span class="number">1</span>
+                ) {
                     <span class="ident">syntax_node</span> <span class="op">=</span> <span class="ident">node</span>;
                 }
                 <span class="ident">identifier</span>.<span class="ident">clear</span>();
+                <span class="ident">identifier_start</span> <span class="op">=</span> <span class="ident">position</span> <span class="op">+</span> <span class="number">1</span>;
             } <span class="kw">else</span> {
                 <span class="ident">identifier</span>.<span class="ident">push</span>(<span class="ident">char</span>)
             }
@@ -293,38 +338,41 @@
         }
     }
 
-    <span class="ident">SyntaxScanResult</span>(<span class="ident">syntax_node</span>, <span class="ident">offset</span> <span class="op">+</span> <span class="ident">source</span>.<span class="ident">len</span>())
+    <span class="ident">SyntaxScanResult</span>(<span class="ident">syntax_node</span>, <span class="ident">offset</span> <span class="op">+</span> <span class="ident">source_length</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">SyntaxNode</span> {
     <span class="kw">fn</span> <span class="ident">add_child</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">child</span>: <span class="ident">SyntaxNode</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">children</span>.<span class="ident">push</span>(<span class="ident">child</span>),
+            <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">children</span>.<span class="ident">push</span>(<span class="ident">child</span>),
             <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">children</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">children</span>.<span class="ident">push</span>(<span class="ident">child</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">add_identifier_or_child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">add_identifier_or_child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">identifier_starts_at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">new_identifier</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span> } <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span>, .. } <span class="op">=</span><span class="op">&gt;</span>
                 <span class="prelude-val">Some</span>(<span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="ident">new_identifier</span>.<span class="ident">to_string</span>(),
                     <span class="ident">children</span>: <span class="ident">children</span>.<span class="ident">clone</span>(),
+                    <span class="ident">starts_at</span>: <span class="ident">identifier_starts_at</span>
                 }),
 
-            <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span>, <span class="ident">starts_at</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">clone</span>();
                 <span class="ident">children</span>.<span class="ident">push</span>(<span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="ident">new_identifier</span>.<span class="ident">to_string</span>(),
                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                    <span class="ident">starts_at</span>: <span class="ident">identifier_starts_at</span>
                 });
                 <span class="prelude-val">Some</span>(<span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="ident">identifier</span>.<span class="ident">clone</span>(),
                     <span class="ident">children</span>,
+                    <span class="ident">starts_at</span>: <span class="kw-2">*</span><span class="ident">starts_at</span>,
                 })
             }
         }
@@ -342,31 +390,39 @@
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">parse_ast</span>(<span class="ident">input</span>);
 
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">AnonymousNode</span> {
+            <span class="ident">starts_at</span>: <span class="number">0</span>,
             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="string">&quot;list&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">starts_at</span>: <span class="number">2</span>,
                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">NamedNode</span> {
                             <span class="ident">identifier</span>: <span class="string">&quot;1&quot;</span>.<span class="ident">to_string</span>(),
                             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                            <span class="ident">starts_at</span>: <span class="number">7</span>
                         },
                         <span class="ident">NamedNode</span> {
                             <span class="ident">identifier</span>: <span class="string">&quot;2&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">starts_at</span>: <span class="number">9</span>,
                             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                         },
                         <span class="ident">NamedNode</span> {
                             <span class="ident">identifier</span>: <span class="string">&quot;if&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">starts_at</span>: <span class="number">11</span>,
                             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[
                                 <span class="ident">NamedNode</span> {
                                     <span class="ident">identifier</span>: <span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(),
+                                    <span class="ident">starts_at</span>: <span class="number">14</span>,
                                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                                 },
                                 <span class="ident">NamedNode</span> {
                                     <span class="ident">identifier</span>: <span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>(),
+                                    <span class="ident">starts_at</span>: <span class="number">16</span>,
                                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                                 },
                                 <span class="ident">NamedNode</span> {
                                     <span class="ident">identifier</span>: <span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>(),
+                                    <span class="ident">starts_at</span>: <span class="number">18</span>,
                                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                                 },
                             ],

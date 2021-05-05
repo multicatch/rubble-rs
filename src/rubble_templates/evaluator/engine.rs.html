@@ -186,17 +186,40 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::<span class="ident">ast</span>::<span class="ident">SyntaxNode</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::{<span class="ident">Function</span>, <span class="ident">EvaluationError</span>, <span class="ident">Evaluator</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::{<span class="ident">Function</span>, <span class="ident">SyntaxError</span>, <span class="ident">Evaluator</span>, <span class="ident">EvaluationError</span>};
 
 <span class="doccomment">/// Simple evaluation engine providing basic features like variable and function evaluation.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This engine evaluates are variables, functions and literals in a code fragment and returns</span>
 <span class="doccomment">/// a resulting String. It might also return an error when encounters unexpected identifier or</span>
 <span class="doccomment">/// a variable with parameters. When it encounters a function, it tries to evaluate it and</span>
-<span class="doccomment">/// propagates any error that it retuns.</span>
+<span class="doccomment">/// propagates any error that it returns.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This engine always uses the same Functions for evaluations, but can be supplied with different</span>
 <span class="doccomment">/// parameters during every evaluation.</span>
@@ -211,50 +234,53 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">evaluate_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">evaluate_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">variables</span>.<span class="ident">get</span>(<span class="ident">identifier</span>).<span class="ident">cloned</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">evaluate_function_or_literal</span>(<span class="ident">identifier</span>, <span class="ident">parameters</span>, <span class="ident">variables</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">evaluate_function_or_literal</span>(<span class="ident">identifier</span>, <span class="ident">offset</span>, <span class="ident">parameters</span>, <span class="ident">variables</span>),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">evaluate_function_or_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">evaluate_function</span>(<span class="ident">identifier</span>, <span class="ident">parameters</span>, <span class="ident">variables</span>)
+    <span class="kw">fn</span> <span class="ident">evaluate_function_or_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">evaluate_function</span>(<span class="ident">identifier</span>, <span class="ident">offset</span>, <span class="ident">parameters</span>, <span class="ident">variables</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">extract_literal</span>(<span class="ident">identifier</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">it</span><span class="op">|</span> <span class="ident">it</span>.<span class="ident">to_string</span>())
-                    .<span class="ident">ok_or</span>(<span class="ident">EvaluationError</span>::<span class="ident">UnknownSymbol</span> {
-                        <span class="ident">symbol</span>: <span class="ident">identifier</span>.<span class="ident">to_string</span>(),
+                    .<span class="ident">ok_or</span>(<span class="ident">SyntaxError</span> {
+                        <span class="ident">relative_pos</span>: <span class="ident">offset</span>,
+                        <span class="ident">description</span>: <span class="ident">EvaluationError</span>::<span class="ident">UnknownSymbol</span> {
+                            <span class="ident">symbol</span>: <span class="ident">identifier</span>.<span class="ident">to_string</span>(),
+                        },
                     })
             })
     }
 
-    <span class="kw">fn</span> <span class="ident">evaluate_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="ident">identifier</span>)<span class="question-mark">?</span>.<span class="ident">evaluate</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Evaluator</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">variables</span>))
+    <span class="kw">fn</span> <span class="ident">evaluate_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="ident">identifier</span>)<span class="question-mark">?</span>.<span class="ident">evaluate</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Evaluator</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="ident">variables</span>, <span class="ident">offset</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Evaluator</span> <span class="kw">for</span> <span class="ident">SimpleEvaluationEngine</span> {
-    <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">syntax_node</span>: <span class="ident">SyntaxNode</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span> {
-        <span class="ident">evaluate</span>(<span class="ident">syntax_node</span>, <span class="op">|</span><span class="ident">identifier</span>, <span class="ident">parameters</span><span class="op">|</span>
-            <span class="self">self</span>.<span class="ident">evaluate_symbol</span>(<span class="ident">variables</span>, <span class="ident">identifier</span>, <span class="ident">parameters</span>),
+    <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">syntax_node</span>: <span class="ident">SyntaxNode</span>, <span class="ident">variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span> {
+        <span class="ident">evaluate</span>(<span class="ident">syntax_node</span>, <span class="op">|</span><span class="ident">identifier</span>, <span class="ident">offset</span>, <span class="ident">parameters</span><span class="op">|</span>
+            <span class="self">self</span>.<span class="ident">evaluate_symbol</span>(<span class="ident">variables</span>, <span class="ident">identifier</span>, <span class="ident">offset</span>, <span class="ident">parameters</span>),
         )
     }
 }
 
-<span class="kw">fn</span> <span class="ident">evaluate</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">syntax_node</span>: <span class="ident">SyntaxNode</span>, <span class="ident">evaluate_symbol</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">evaluate</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">syntax_node</span>: <span class="ident">SyntaxNode</span>, <span class="ident">evaluate_symbol</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usize</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span> {
     <span class="kw">match</span> <span class="ident">syntax_node</span> {
-        <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span> } <span class="op">=</span><span class="op">&gt;</span>
-            <span class="ident">evaluate_symbol</span>(<span class="ident">identifier</span>.<span class="ident">as_str</span>(), <span class="ident">children</span>),
+        <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span>, <span class="ident">starts_at</span> } <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">evaluate_symbol</span>(<span class="ident">identifier</span>.<span class="ident">as_str</span>(), <span class="ident">starts_at</span>, <span class="ident">children</span>),
 
-        <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span> } <span class="op">=</span><span class="op">&gt;</span>
-            <span class="ident">evaluate_nested</span>(<span class="ident">children</span>, <span class="ident">evaluate_symbol</span>),
+        <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> { <span class="ident">children</span>, <span class="ident">starts_at</span> } <span class="op">=</span><span class="op">&gt;</span>
+            <span class="ident">evaluate_nested</span>(<span class="ident">starts_at</span>, <span class="ident">children</span>, <span class="ident">evaluate_symbol</span>),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">evaluate_nested</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">evaluate_symbol</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">EvaluationError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">evaluate_nested</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">offset</span>: <span class="ident">usize</span>, <span class="ident">children</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">evaluate_symbol</span>: <span class="ident">E</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usize</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SyntaxError</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">as_slice</span>();
     <span class="kw">if</span> <span class="ident">children</span>.<span class="ident">is_empty</span>() {
         <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
@@ -262,12 +288,15 @@
 
     <span class="kw">let</span> <span class="ident">child</span> <span class="op">=</span> <span class="ident">children</span>[<span class="number">0</span>].<span class="ident">clone</span>();
     <span class="kw">if</span> <span class="ident">children</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> {
-        <span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">EvaluationError</span>::<span class="ident">UnexpectedElements</span> {
-            <span class="ident">last_expected</span>: <span class="prelude-val">Some</span>(<span class="ident">child</span>),
-            <span class="ident">unexpected_elements</span>: <span class="ident">children</span>[<span class="number">1</span>..].<span class="ident">to_vec</span>(),
+        <span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">SyntaxError</span> {
+            <span class="ident">relative_pos</span>: <span class="ident">offset</span>,
+            <span class="ident">description</span>: <span class="ident">EvaluationError</span>::<span class="ident">UnexpectedElements</span> {
+                <span class="ident">last_expected</span>: <span class="prelude-val">Some</span>(<span class="ident">child</span>),
+                <span class="ident">unexpected_elements</span>: <span class="ident">children</span>[<span class="number">1</span>..].<span class="ident">to_vec</span>(),
+            },
         })
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span> } <span class="op">=</span> <span class="ident">child</span> {
-        <span class="ident">evaluate_symbol</span>(<span class="ident">identifier</span>.<span class="ident">as_str</span>(), <span class="ident">children</span>)
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, <span class="ident">children</span>, .. } <span class="op">=</span> <span class="ident">child</span> {
+        <span class="ident">evaluate_symbol</span>(<span class="ident">identifier</span>.<span class="ident">as_str</span>(), <span class="ident">offset</span>, <span class="ident">children</span>)
     } <span class="kw">else</span> {
         <span class="ident">evaluate</span>(<span class="ident">child</span>, <span class="ident">evaluate_symbol</span>)
     }
@@ -287,9 +316,9 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::<span class="ident">engine</span>::{<span class="ident">EvaluationError</span>, <span class="ident">SimpleEvaluationEngine</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::<span class="ident">engine</span>::{<span class="ident">SyntaxError</span>, <span class="ident">SimpleEvaluationEngine</span>};
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::<span class="ident">ast</span>::<span class="ident">SyntaxNode</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::{<span class="ident">Evaluator</span>, <span class="ident">Function</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">evaluator</span>::{<span class="ident">Evaluator</span>, <span class="ident">Function</span>, <span class="ident">EvaluationError</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">should_evaluate_variable</span>() {
@@ -317,12 +346,16 @@
 
         <span class="comment">// using closure as function in the evaluation engine</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span>
-            <span class="op">|</span><span class="ident">_evaluator</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Evaluator</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">_variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="op">|</span> {
+            <span class="op">|</span><span class="ident">_evaluator</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Evaluator</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SyntaxNode</span><span class="op">&gt;</span>, <span class="ident">_variables</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">offset</span>: <span class="ident">usize</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> { <span class="ident">identifier</span>, .. }) <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">get</span>(<span class="number">0</span>) {
                     <span class="prelude-ty">Result</span>::<span class="prelude-val">Ok</span>(<span class="ident">identifier</span>.<span class="ident">clone</span>())
                 } <span class="kw">else</span> {
-                    <span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">EvaluationError</span>::<span class="ident">InvalidArguments</span> {
-                        <span class="ident">arguments</span>: <span class="ident">parameters</span>.<span class="ident">clone</span>(),
+                    <span class="prelude-ty">Result</span>::<span class="prelude-val">Err</span>(<span class="ident">SyntaxError</span> {
+                        <span class="ident">relative_pos</span>: <span class="ident">offset</span>,
+                        <span class="ident">description</span>: <span class="ident">EvaluationError</span>::<span class="ident">InvalidArguments</span> {
+                            <span class="ident">description</span>: <span class="prelude-val">None</span>,
+                            <span class="ident">arguments</span>: <span class="ident">parameters</span>.<span class="ident">clone</span>(),
+                        },
                     })
                 }
             };
@@ -333,9 +366,11 @@
         <span class="comment">// our function call</span>
         <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
             <span class="ident">identifier</span>: <span class="string">&quot;our_function&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">starts_at</span>: <span class="number">0</span>,
             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="string">&quot;param&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">starts_at</span>: <span class="number">0</span>,
                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                 },
             ],
@@ -347,7 +382,13 @@
 
         <span class="comment">// incorrect function call</span>
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">engine</span>.<span class="ident">evaluate</span>(<span class="ident">node_of</span>(<span class="string">&quot;our_function&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">variables</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">err</span>(), <span class="prelude-val">Some</span>(<span class="ident">EvaluationError</span>::<span class="ident">InvalidArguments</span> { <span class="ident">arguments</span>: <span class="macro">vec</span><span class="macro">!</span>[] }))
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">err</span>(), <span class="prelude-val">Some</span>(<span class="ident">SyntaxError</span> {
+            <span class="ident">relative_pos</span>: <span class="number">0</span>,
+            <span class="ident">description</span>: <span class="ident">EvaluationError</span>::<span class="ident">InvalidArguments</span> {
+                <span class="ident">description</span>: <span class="prelude-val">None</span>,
+                <span class="ident">arguments</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            },
+        }))
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -356,16 +397,21 @@
         <span class="kw">let</span> <span class="ident">variables</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">engine</span>.<span class="ident">evaluate</span>(<span class="ident">node_of</span>(<span class="string">&quot;unknown&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">variables</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">err</span>(), <span class="prelude-val">Some</span>(<span class="ident">EvaluationError</span>::<span class="ident">UnknownSymbol</span> {
-            <span class="ident">symbol</span>: <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>()
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">err</span>(), <span class="prelude-val">Some</span>(<span class="ident">SyntaxError</span> {
+            <span class="ident">relative_pos</span>: <span class="number">0</span>,
+            <span class="ident">description</span>: <span class="ident">EvaluationError</span>::<span class="ident">UnknownSymbol</span> {
+                <span class="ident">symbol</span>: <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>()
+            },
         }));
     }
 
     <span class="kw">fn</span> <span class="ident">node_of</span>(<span class="ident">identifier</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SyntaxNode</span> {
         <span class="ident">SyntaxNode</span>::<span class="ident">AnonymousNode</span> {
+            <span class="ident">starts_at</span>: <span class="number">0</span>,
             <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">SyntaxNode</span>::<span class="ident">NamedNode</span> {
                     <span class="ident">identifier</span>: <span class="ident">identifier</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">starts_at</span>: <span class="number">0</span>,
                     <span class="ident">children</span>: <span class="macro">vec</span><span class="macro">!</span>[],
                 }
             ],
