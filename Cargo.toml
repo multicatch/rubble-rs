@@ -1,7 +1,7 @@
 [package]
 name = "rubble-templates"
 description = "A template engine to compile text and evaluate code from template files"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["multicatch <cezaryre@gmail.com>"]
 edition = "2018"
 license = "MIT"
