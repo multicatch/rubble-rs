@@ -22,14 +22,14 @@ impl SimpleEvaluationEngine {
         }
     }
 
-    fn evaluate_symbol(&self, variables: &HashMap<String, String>, identifier: &str, offset: usize, parameters: Vec<SyntaxNode>) -> Result<String, SyntaxError> {
+    fn evaluate_symbol(&self, variables: &HashMap<String, String>, identifier: &str, offset: usize, parameters: &[SyntaxNode]) -> Result<String, SyntaxError> {
         match variables.get(identifier).cloned() {
             Some(result) => Ok(result),
             None => self.evaluate_function_or_literal(identifier, offset, parameters, variables),
         }
     }
 
-    fn evaluate_function_or_literal(&self, identifier: &str, offset: usize, parameters: Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
+    fn evaluate_function_or_literal(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
         self.evaluate_function(identifier, offset, parameters, variables)
             .unwrap_or_else(|| {
                 extract_literal(identifier)
@@ -43,33 +43,32 @@ impl SimpleEvaluationEngine {
             })
     }
 
-    fn evaluate_function(&self, identifier: &str, offset: usize, parameters: Vec<SyntaxNode>, variables: &HashMap<String, String>) -> Option<Result<String, SyntaxError>> {
+    fn evaluate_function(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Option<Result<String, SyntaxError>> {
         Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters, variables, offset))
     }
 }
 
 impl Evaluator for SimpleEvaluationEngine {
-    fn evaluate(&self, syntax_node: SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
+    fn evaluate(&self, syntax_node: &SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
         evaluate(syntax_node, |identifier, offset, parameters|
             self.evaluate_symbol(variables, identifier, offset, parameters),
         )
     }
 }
 
-fn evaluate<E>(syntax_node: SyntaxNode, evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: Fn(&str, usize, Vec<SyntaxNode>) -> Result<String, SyntaxError> {
+fn evaluate<E>(syntax_node: &SyntaxNode, evaluate_symbol: E) -> Result<String, SyntaxError>
+    where E: Fn(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
     match syntax_node {
         SyntaxNode::NamedNode { identifier, children, starts_at } =>
-            evaluate_symbol(identifier.as_str(), starts_at, children),
+            evaluate_symbol(identifier.as_str(), *starts_at, children),
 
         SyntaxNode::AnonymousNode { children, starts_at } =>
-            evaluate_nested(starts_at, children, evaluate_symbol),
+            evaluate_nested(*starts_at, children, evaluate_symbol),
     }
 }
 
-fn evaluate_nested<E>(offset: usize, children: Vec<SyntaxNode>, evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: Fn(&str, usize, Vec<SyntaxNode>) -> Result<String, SyntaxError> {
-    let children = children.as_slice();
+fn evaluate_nested<E>(offset: usize, children: &[SyntaxNode], evaluate_symbol: E) -> Result<String, SyntaxError>
+    where E: Fn(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
     if children.is_empty() {
         return Result::Ok("".to_string());
     }
@@ -84,9 +83,9 @@ fn evaluate_nested<E>(offset: usize, children: Vec<SyntaxNode>, evaluate_symbol:
             },
         })
     } else if let SyntaxNode::NamedNode { identifier, children, .. } = child {
-        evaluate_symbol(identifier.as_str(), offset, children)
+        evaluate_symbol(identifier.as_str(), offset, children.as_slice())
     } else {
-        evaluate(child, evaluate_symbol)
+        evaluate(&child, evaluate_symbol)
     }
 }
 
@@ -115,15 +114,15 @@ mod tests {
         let engine = SimpleEvaluationEngine::from(HashMap::new());
 
         // variable subsitution
-        let result = engine.evaluate(node_of("variable"), &variables);
+        let result = engine.evaluate(&node_of("variable"), &variables);
         assert_eq!(result.ok(), Some("1234".to_string()));
 
         // number literal
-        let result = engine.evaluate(node_of("-12.2"), &variables);
+        let result = engine.evaluate(&node_of("-12.2"), &variables);
         assert_eq!(result.ok(), Some("-12.2".to_string()));
 
         // string literal
-        let result = engine.evaluate(node_of("\"test\""), &variables);
+        let result = engine.evaluate(&node_of("\"test\""), &variables);
         assert_eq!(result.ok(), Some("test".to_string()));
     }
 
@@ -165,11 +164,11 @@ mod tests {
         };
 
         // correct function call
-        let result = engine.evaluate(node, &variables);
+        let result = engine.evaluate(&node, &variables);
         assert_eq!(result.ok(), Some("param".to_string()));
 
         // incorrect function call
-        let result = engine.evaluate(node_of("our_function"), &variables);
+        let result = engine.evaluate(&node_of("our_function"), &variables);
         assert_eq!(result.err(), Some(SyntaxError {
             relative_pos: 0,
             description: EvaluationError::InvalidArguments {
@@ -184,7 +183,7 @@ mod tests {
         let engine = SimpleEvaluationEngine::from(HashMap::new());
         let variables = HashMap::new();
 
-        let result = engine.evaluate(node_of("unknown"), &variables);
+        let result = engine.evaluate(&node_of("unknown"), &variables);
         assert_eq!(result.err(), Some(SyntaxError {
             relative_pos: 0,
             description: EvaluationError::UnknownSymbol {

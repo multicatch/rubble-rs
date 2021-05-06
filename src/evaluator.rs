@@ -10,7 +10,7 @@ pub mod engine;
 /// AST are not constructed by the Evaluator, they are consumed by it.
 ///
 pub trait Evaluator {
-    fn evaluate(&self, syntax_node: SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError>;
+    fn evaluate(&self, syntax_node: &SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError>;
 }
 
 /// An error that can happen during evaluation with full info about where and what happened.

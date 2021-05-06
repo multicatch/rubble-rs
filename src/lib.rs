@@ -81,7 +81,7 @@ mod tests {
         Ok(
             parameters.iter()
                 .map(|node|
-                    evaluator.evaluate(node.clone(), variables).unwrap().parse::<i32>().unwrap()
+                    evaluator.evaluate(node, variables).unwrap().parse::<i32>().unwrap()
                 )
                 .sum::<i32>()
                 .to_string()

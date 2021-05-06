@@ -65,7 +65,7 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
             let compiled = match item {
                 TemplateSlice::Text { value, .. } => value.to_string(),
                 TemplateSlice::Code { value, start_position, .. } => self.engine
-                    .evaluate(parse_ast(value), variables)
+                    .evaluate(&parse_ast(value), variables)
                     .map_err(|err| CompilationError::EvaluationFailed {
                         error: err,
                         position: start_position,

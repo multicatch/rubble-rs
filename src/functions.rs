@@ -25,7 +25,7 @@ pub fn std_functions() -> HashMap<String, Box<dyn Function>> {
 pub fn concat_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
     let mut result = "".to_string();
     for parameter in parameters {
-        let fragment = evaluator.evaluate(parameter.clone(), &variables)?;
+        let fragment = evaluator.evaluate(parameter, &variables)?;
         result += &fragment;
     }
 
