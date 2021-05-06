@@ -138,7 +138,7 @@ fn extract_string(identifier: String, char: char, string_started: bool) -> (Stri
     (identifier, string_started)
 }
 
-fn start_node(syntax_node: SyntaxNode, identifier: &String, source_remainder: &str, identifier_start: usize, position: usize) -> (SyntaxNode, usize) {
+fn start_node(syntax_node: SyntaxNode, identifier: &str, source_remainder: &str, identifier_start: usize, position: usize) -> (SyntaxNode, usize) {
     let mut syntax_node = syntax_node;
     if let Some(node) = syntax_node.add_identifier_or_child(
         identifier,
