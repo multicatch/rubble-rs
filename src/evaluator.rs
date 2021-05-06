@@ -67,7 +67,7 @@ pub trait Function {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError>;
 }
 
-impl<F> Function for F where F: Fn(&dyn Evaluator, &Vec<SyntaxNode>, &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
+impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
         let vec = parameters.to_vec();
         self(evaluator, &vec, variables, offset)

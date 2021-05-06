@@ -13,7 +13,11 @@ use std::fmt::{Display, Formatter};
 ///
 /// The compiler should return the resulting String compiled from all items that the iterator returned.
 pub trait Compiler<T> {
+    /// Type of a single template part that can be compiled/evaluated/parsed.
+    ///
+    /// Those parts will be compiled into a template
     type Item;
+    /// Iterator that can provide template parts that need to be compiled.
     type ItemIterator: Iterator<Item = Self::Item>;
 
     fn compile<C>(&self, content: C, variables: &HashMap<String, String>) -> Result<String, CompilationError>

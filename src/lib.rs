@@ -9,6 +9,7 @@ use std::error::Error;
 pub mod template;
 pub mod evaluator;
 pub mod compiler;
+pub mod functions;
 
 /// Compiles template from file.
 ///
@@ -76,7 +77,7 @@ mod tests {
         assert_eq!(result.ok(), Some("Some template. Hello world!.\n\nThis shows a function evaluation usage example:\n2 + 2 = 4".to_string()));
     }
 
-    fn plus_function(evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
+    fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
         Ok(
             parameters.iter()
                 .map(|node|

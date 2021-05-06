@@ -93,7 +93,7 @@ fn evaluate_nested<E>(offset: usize, children: Vec<SyntaxNode>, evaluate_symbol:
 fn extract_literal(source: &str) -> Option<&str> {
     if source.parse::<f64>().is_ok() {
         Some(source)
-    } else if source.starts_with('"') && source.ends_with('"') {
+    } else if source.starts_with('"') && source.ends_with('"') && source.len() > 2 {
         Some(&source[1..(source.len() - 1)])
     } else {
         None
@@ -134,7 +134,7 @@ mod tests {
 
         // using closure as function in the evaluation engine
         let function =
-            |_evaluator: &dyn Evaluator, parameters: &Vec<SyntaxNode>, _variables: &HashMap<String, String>, offset: usize| {
+            |_evaluator: &dyn Evaluator, parameters: &[SyntaxNode], _variables: &HashMap<String, String>, offset: usize| {
                 if let Some(SyntaxNode::NamedNode { identifier, .. }) = parameters.get(0) {
                     Result::Ok(identifier.clone())
                 } else {
@@ -142,7 +142,7 @@ mod tests {
                         relative_pos: offset,
                         description: EvaluationError::InvalidArguments {
                             description: None,
-                            arguments: parameters.clone(),
+                            arguments: parameters.to_vec(),
                         },
                     })
                 }

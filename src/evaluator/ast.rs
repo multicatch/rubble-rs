@@ -75,6 +75,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
         starts_at: offset
     };
     let mut identifier = "".to_string();
+    let mut string_started = false;
     let mut identifier_start: usize = offset;
     let mut skip_end: usize = 0;
     let mut source_length: usize = 0;
@@ -86,18 +87,18 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
             continue;
         }
         let current_offset = index + 1;
-        let source_remainder = &source[current_offset..];
+
+        let (id, started) = extract_string(identifier, char, string_started);
+        identifier = id;
+        string_started = started;
+        if string_started {
+            continue;
+        }
 
         if char == '(' {
-            if let Some(node) = syntax_node.add_identifier_or_child(
-                &identifier,
-                identifier_start + 1
-            ) {
-                syntax_node = node;
-            }
-            let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position);
+            let (new_node, skip_pos) = start_node(syntax_node, &identifier, &source[current_offset..], identifier_start + 1, position);
+            syntax_node = new_node;
             skip_end = skip_pos;
-            syntax_node.add_child(child);
         } else {
             if char == ' ' || char == ')' {
                 if let Some(node) = syntax_node.add_identifier_or_child(
@@ -109,7 +110,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
                 identifier.clear();
                 identifier_start = position + 1;
             } else {
-                identifier.push(char)
+                identifier.push(char);
             }
 
             if char == ')' {
@@ -119,6 +120,36 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
     }
 
     SyntaxScanResult(syntax_node, offset + source_length)
+}
+
+fn extract_string(identifier: String, char: char, string_started: bool) -> (String, bool) {
+    let mut identifier = identifier;
+    let mut string_started = string_started;
+
+    if string_started && char != '"' {
+        identifier.push(char);
+    } else if string_started {
+        string_started = false;
+    } else if char == '"' {
+        identifier.push(char);
+        string_started = true;
+    }
+
+    (identifier, string_started)
+}
+
+fn start_node(syntax_node: SyntaxNode, identifier: &String, source_remainder: &str, identifier_start: usize, position: usize) -> (SyntaxNode, usize) {
+    let mut syntax_node = syntax_node;
+    if let Some(node) = syntax_node.add_identifier_or_child(
+        identifier,
+        identifier_start
+    ) {
+        syntax_node = node;
+    }
+    let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position);
+    syntax_node.add_child(child);
+
+    (syntax_node, skip_pos)
 }
 
 impl SyntaxNode {
