@@ -51,9 +51,10 @@ pub fn plus_function(parameters: &[String]) -> String {
             if let Result::Ok(value) = param.parse::<f64>() {
                 floating_result = Some(floating_result.unwrap_or(0 as f64) + value);
             } else {
-                floating_result
-                    .map(|number| number.to_string())
-                    .map(|number| result += &number);
+                if let Some(number) = floating_result
+                    .map(|number| number.to_string()) {
+                    result += &number
+                }
 
                 result.push_str(param);
             }
