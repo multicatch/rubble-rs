@@ -3,6 +3,7 @@ use ast::SyntaxNode;
 
 pub mod ast;
 pub mod engine;
+pub mod functions;
 
 /// Trait that describes an ability to evaluate code in template.
 ///
@@ -67,9 +68,40 @@ pub trait Function {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError>;
 }
 
+/// Impl for Function that allows to use lambda as a function in Evaluator
+///
+/// Allows to use `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>` as `Function` in Evaluator.
+/// For other implementations, see [functions].
+///
+/// Example:
+/// ```
+/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError};
+/// use rubble_templates::evaluator::ast::SyntaxNode;
+/// use std::collections::HashMap;
+/// use rubble_templates::template::Template;
+/// use rubble_templates::compile_template_from_string;
+///
+/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
+///     Ok(
+///         parameters.iter()
+///             .map(|node|
+///                 evaluator.evaluate(node, variables).unwrap().parse::<i32>().unwrap()
+///             )
+///             .sum::<i32>()
+///             .to_string()
+///     )
+/// }
+///
+/// let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
+/// functions.insert("plus".to_string(), Box::new(plus_function)); // will be treated as Box<dyn Function>
+///
+/// let variables: HashMap<String, String> = HashMap::new();
+///
+/// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
+/// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
+/// ```
 impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
-        let vec = parameters.to_vec();
-        self(evaluator, &vec, variables, offset)
+        self(evaluator, &parameters, variables, offset)
     }
 }

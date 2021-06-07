@@ -60,14 +60,14 @@ mod tests {
     use crate::compile_template_from_file;
     use std::path::PathBuf;
     use std::collections::HashMap;
-    use crate::evaluator::{Function, Evaluator, SyntaxError};
-    use crate::evaluator::ast::SyntaxNode;
+    use crate::evaluator::Function;
+    use crate::evaluator::functions::SimpleFunction;
 
     #[test]
     fn should_compile_template() {
         let file = PathBuf::from("test-assets/complex-template");
         let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
-        functions.insert("plus".to_string(), Box::new(plus_function));
+        functions.insert("plus".to_string(), SimpleFunction::new(plus_function));
 
         let mut variables: HashMap<String, String> = HashMap::new();
         variables.insert("hello".to_string(), "Hello world!".to_string());
@@ -77,15 +77,13 @@ mod tests {
         assert_eq!(result.ok(), Some("Some template. Hello world!.\n\nThis shows a function evaluation usage example:\n2 + 2 = 4".to_string()));
     }
 
-    fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
-        Ok(
-            parameters.iter()
-                .map(|node|
-                    evaluator.evaluate(node, variables).unwrap().parse::<i32>().unwrap()
+    fn plus_function(parameters: &[String]) -> String {
+        parameters.iter()
+                .map(|param|
+                    param.parse::<i32>().unwrap()
                 )
                 .sum::<i32>()
                 .to_string()
-        )
     }
 }
 

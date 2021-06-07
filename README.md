@@ -107,35 +107,40 @@ compiler.compile(&template, &variables)
 ### Custom functions
 
 Evaluator can be extended with functions by using custom `Function` trait implementations.
-To make this process easier, there is default implementation for `F where F: Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`,
-so this means that you can use lambdas or Rust functions.
+To make this process easier, there is `evaluator::functions` module that contains structs that can be used with static functions and lambdas:
+* `SimpleFunction` - for `Fn(&[String]) -> String`. 
+  Use this when you want to implement a simple function without any side effects.
+* `FunctionWithEvaluator` - for `Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`. 
+  Use this when you want to use pre-evaluated parameters, but you still need variables. 
+  Side effects can cause errors indicated by SyntaxError. 
+* `FunctionWithAst` - for `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`.
+  Gives full access to `SyntaxNode`s of parameters and `Evaluator`. 
+  Allows evaluating additional expressions, manipulate the AST or introduce DSL (domain-specific language).
 
-Example with function:
+Examples for each struct are provided in the documentation. Refer to the generated docs for more specific info.
+
+Basic example:
 ```rust
 #[test]
 fn should_compile_template() {
-    let text = Template::from("{{hello}}\n2 + 2 = {{ plus 2 2 }}".to_string());
-    
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
-    functions.insert("plus".to_string(), Box::new(plus_function));
+    functions.insert("plus".to_string(), SimpleFunction::new(plus_function));
 
     let mut variables: HashMap<String, String> = HashMap::new();
     variables.insert("hello".to_string(), "Hello world!".to_string());
 
-    let result = compile_template_from_string(text, variables, functions);
+    let result = compile_template_from_string("{{hello}}\n2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 
     assert_eq!(result.ok(), Some("Hello world!.\n2 + 2 = 4".to_string()));
 }
 
-fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
-    Ok(
-        parameters.iter()
-            .map(|node|
-                evaluator.evaluate(node, variables).unwrap().parse::<i32>().unwrap()
-            )
-            .sum::<i32>()
-            .to_string()
-    )
+fn plus_function(parameters: &[String]) -> String {
+    parameters.iter()
+         .map(|param|
+             param.parse::<i32>().unwrap()
+         )
+         .sum::<i32>()
+         .to_string()
 }
 ```
 
