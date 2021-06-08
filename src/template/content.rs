@@ -30,7 +30,7 @@ pub enum TemplateSlice<'a> {
 /// Iterates over some template source and returns code fragments that needs evaluation.
 ///
 /// It can be used to return all evaluation spots from a template. For example, there is an implementation
-/// that looks for all embedded code fragments and returns them as `TemplateFragment`s for further evaluation.
+/// that looks for all embedded code fragments and returns them as [TemplateSlice]s for further evaluation.
 pub struct EvaluableMixedContentIterator<'a, T> {
     source: &'a T,
     current_position: usize,

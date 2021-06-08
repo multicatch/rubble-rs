@@ -115,7 +115,7 @@ To make this process easier, there is `evaluator::functions` module that contain
   Side effects can cause errors indicated by SyntaxError. 
 * `FunctionWithAst` - for `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`.
   Gives full access to `SyntaxNode`s of parameters and `Evaluator`. 
-  Allows evaluating additional expressions, manipulate the AST or introduce DSL (domain-specific language).
+  Allows evaluating additional expressions, manipulating the AST or introducing DSL (domain-specific language).
 
 Examples for each struct are provided in the documentation. Refer to the generated docs for more specific info.
 

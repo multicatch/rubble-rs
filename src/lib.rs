@@ -16,10 +16,10 @@ pub mod functions;
 /// This function reads a file and uses supplied variables and functions to compile a template.
 /// It is a quick way to get a compiled template, as it initializes Engine and Compiler with each invocation.
 ///
-/// For some special cases consider using SimpleEvaluationEngine, TemplateCompiler or other specific
-/// Evaluator and Compiler traits implementations.
+/// For some special cases consider using [SimpleEvaluationEngine], [TemplateCompiler] or other specific
+/// [Evaluator](evaluator::Evaluator) and [Compiler] traits implementations.
 ///
-/// Template can look like the following: `Some template {{ variable }} - or something`
+/// Template can look like the following: `Some template {{ variable }} - or something`.
 /// Code that will be evaluated should be put between `{{` and `}}`.
 pub fn compile_template_from_file(file: PathBuf, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, Box<dyn Error>> {
     let template = Template::read_from(&file)?;
@@ -30,23 +30,23 @@ pub fn compile_template_from_file(file: PathBuf, variables: HashMap<String, Stri
 
 /// Compiles template from String.
 ///
-/// It creates a Template instance on the fly and then compiles it.
+/// It creates a [Template] instance on the fly and then compiles it.
 ///
-/// For some special cases consider using SimpleEvaluationEngine, TemplateCompiler or other specific
-/// Evaluator and Compiler traits implementations.
+/// For some special cases consider using [SimpleEvaluationEngine], [TemplateCompiler] or other specific
+/// [Evaluator](evaluator::Evaluator) and [Compiler] traits implementations.
 ///
-/// Template can look like the following: `Some template {{ variable }} - or something`
+/// Template can look like the following: `Some template {{ variable }} - or something`.
 /// Code that will be evaluated should be put between `{{` and `}}`.
 pub fn compile_template_from_string(template: String, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, CompilationError> {
     compile_template_from(Template::from(template), variables, functions)
 }
 
-/// Compiles template from Template.
+/// Compiles template from [Template].
 ///
-/// For some special cases consider using SimpleEvaluationEngine, TemplateCompiler or other specific
-/// Evaluator and Compiler traits implementations.
+/// For some special cases consider using [SimpleEvaluationEngine], [TemplateCompiler] or other specific
+/// [Evaluator](evaluator::Evaluator) and [Compiler] traits implementations.
 ///
-/// Template can look like the following: `Some template {{ variable }} - or something`
+/// Template can look like the following: `Some template {{ variable }} - or something`.
 /// Code that will be evaluated should be put between `{{` and `}}`.
 pub fn compile_template_from(template: Template, variables: HashMap<String, String>, functions: HashMap<String, Box<dyn Function>>) -> Result<String, CompilationError> {
     let engine = SimpleEvaluationEngine::from(functions);

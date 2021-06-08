@@ -2,7 +2,7 @@ use crate::evaluator::{Function, Evaluator, SyntaxError};
 use crate::evaluator::ast::SyntaxNode;
 use std::collections::HashMap;
 
-/// A wrapper for a `Fn(&[String]) -> String`, to be used in Evaluator.
+/// A wrapper for a `Fn(&[String]) -> String`, to be used in [Evaluator].
 ///
 ///
 /// Example:
@@ -52,7 +52,7 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in Evaluator.
+/// A wrapper for a `Fn(&dyn Evaluator, &[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```
@@ -103,7 +103,7 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &HashMap<Stri
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in Evaluator.
+/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```
@@ -149,10 +149,10 @@ impl<F> Function for FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode
     }
 }
 
-/// Resolves a slice of `SyntaxNode`s to a `Vec` of strings.
+/// Resolves a slice of [SyntaxNode]s to a `Vec` of strings.
 ///
-/// Invokes Evaluator on each `SyntaxNode` and returns a `Result` containing a `Vec` of strings (baked parameters ready to use)
-/// or a `SyntaxError` if any parameter evaluation fails.
+/// Invokes Evaluator on each [SyntaxNode] and returns a `Result` containing a `Vec` of strings (baked parameters ready to use)
+/// or a [SyntaxError] if any parameter evaluation fails.
 pub fn resolve_params(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<Vec<String>, SyntaxError> {
     parameters.iter()
         .map(|parameter| {
