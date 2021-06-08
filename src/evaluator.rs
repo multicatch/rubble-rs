@@ -52,6 +52,10 @@ pub enum EvaluationError {
         description: Option<String>,
         arguments: Vec<SyntaxNode>,
     },
+    InvalidValues {
+        description: Option<String>,
+        values: Vec<String>,
+    },
 }
 
 /// A function that can be used to add features to the template.

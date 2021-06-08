@@ -1,6 +1,7 @@
-use crate::evaluator::Function;
+use crate::evaluator::{Function, SyntaxError, EvaluationError};
 use std::collections::HashMap;
-use crate::evaluator::functions::SimpleFunction;
+use crate::evaluator::functions::{SimpleFunction, FunctionWithContext};
+use std::num::ParseFloatError;
 
 const EMPTY_STRING: &str = "";
 
@@ -10,6 +11,7 @@ pub fn std_functions() -> HashMap<String, Box<dyn Function>> {
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
     functions.insert("concat".to_string(), SimpleFunction::new(concat_function));
     functions.insert("+".to_string(), SimpleFunction::new(plus_function));
+    functions.insert("-".to_string(), FunctionWithContext::new(minus_function));
     functions
 }
 
@@ -36,11 +38,13 @@ pub fn concat_function(parameters: &[String]) -> String {
 ///
 /// Eg.
 /// ```text
-/// + 1 2 3.14
+/// + 1 2 3.3
+/// + 1 2 "hello" 3.3
 /// ```
 /// Expected output:
 /// ```text
-/// 1hello 3.14world!
+/// 6.3
+/// 3hello3.3
 /// ```
 pub fn plus_function(parameters: &[String]) -> String {
     let mut result: String = EMPTY_STRING.to_string();
@@ -67,6 +71,44 @@ pub fn plus_function(parameters: &[String]) -> String {
         floating_result.map(|number| number.to_string()).unwrap()
     } else {
         result
+    }
+}
+
+/// Subtracts values.
+/// If any of the parameters is not convertible to a number, then an error will be emitted with the invalid value.
+///
+/// Eg.
+/// ```text
+/// - 8.3 1 1.4
+/// ```
+/// Expected output:
+/// ```text
+/// 5.9
+/// ```
+pub fn minus_function(parameters: &[String], _variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
+    let mut index: usize = 0;
+    let numbers: Result<Vec<f64>, ParseFloatError> = parameters.iter()
+        .map(|number| {
+            index += 1;
+            number.parse::<f64>()
+        })
+        .collect();
+
+    if let Result::Err(error) = numbers {
+        Err(SyntaxError {
+            relative_pos: offset,
+            description: EvaluationError::InvalidValues {
+                description: Some(error.to_string()),
+                values: vec![parameters[index - 1].clone()],
+            },
+        })
+    } else {
+        Ok(numbers.unwrap()
+            .into_iter()
+            .reduce(|a, b| a - b)
+            .unwrap_or(0 as f64)
+            .to_string()
+        )
     }
 }
 

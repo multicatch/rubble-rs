@@ -110,7 +110,7 @@ Evaluator can be extended with functions by using custom `Function` trait implem
 To make this process easier, there is `evaluator::functions` module that contains structs that can be used with static functions and lambdas:
 * `SimpleFunction` - for `Fn(&[String]) -> String`. 
   Use this when you want to implement a simple function without any side effects.
-* `FunctionWithEvaluator` - for `Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`. 
+* `FunctionWithContext` - for `Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`. 
   Use this when you want to use pre-evaluated parameters, but you still need variables. 
   Side effects can cause errors indicated by SyntaxError. 
 * `FunctionWithAst` - for `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`.

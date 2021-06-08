@@ -61,7 +61,7 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// use std::collections::HashMap;
 /// use rubble_templates::template::Template;
 /// use rubble_templates::compile_template_from_string;
-/// use rubble_templates::evaluator::functions::FunctionWithEvaluator;
+/// use rubble_templates::evaluator::functions::FunctionWithContext;
 ///
 /// fn plus_function(parameters: &[String], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
 ///     Ok(
@@ -75,24 +75,24 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// }
 ///
 /// let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
-/// functions.insert("plus".to_string(), FunctionWithEvaluator::new(plus_function)); // will be treated as Box<dyn Function>
+/// functions.insert("plus".to_string(), FunctionWithContext::new(plus_function)); // will be treated as Box<dyn Function>
 ///
 /// let variables: HashMap<String, String> = HashMap::new();
 ///
 /// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 /// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
-pub struct FunctionWithEvaluator<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
+pub struct FunctionWithContext<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
     function: F
 }
 
-impl<F> FunctionWithEvaluator<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
-    pub fn new(function: F) -> Box<FunctionWithEvaluator<F>> {
-        Box::new(FunctionWithEvaluator { function })
+impl<F> FunctionWithContext<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
+    pub fn new(function: F) -> Box<FunctionWithContext<F>> {
+        Box::new(FunctionWithContext { function })
     }
 }
 
-impl<F> Function for FunctionWithEvaluator<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
+impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
     fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
         let parameters = resolve_params(evaluator, parameters, variables, offset);
         match parameters {
