@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::evaluator::ast::SyntaxNode;
-use crate::evaluator::{Function, SyntaxError, Evaluator, EvaluationError};
+use crate::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Context};
 
 /// Simple evaluation engine providing basic features like variable and function evaluation.
 ///
@@ -22,15 +22,15 @@ impl SimpleEvaluationEngine {
         }
     }
 
-    fn evaluate_symbol(&self, variables: &HashMap<String, String>, identifier: &str, offset: usize, parameters: &[SyntaxNode]) -> Result<String, SyntaxError> {
-        match variables.get(identifier).cloned() {
+    fn evaluate_symbol(&self, context: &mut Context, identifier: &str, offset: usize, parameters: &[SyntaxNode]) -> Result<String, SyntaxError> {
+        match context.get_variable(identifier).cloned() {
             Some(result) => Ok(result),
-            None => self.evaluate_function_or_literal(identifier, offset, parameters, variables),
+            None => self.evaluate_function_or_literal(identifier, offset, parameters, context),
         }
     }
 
-    fn evaluate_function_or_literal(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
-        self.evaluate_function(identifier, offset, parameters, variables)
+    fn evaluate_function_or_literal(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        self.evaluate_function(identifier, offset, parameters, context)
             .unwrap_or_else(|| {
                 extract_literal(identifier)
                     .map(|it| it.to_string())
@@ -43,21 +43,21 @@ impl SimpleEvaluationEngine {
             })
     }
 
-    fn evaluate_function(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], variables: &HashMap<String, String>) -> Option<Result<String, SyntaxError>> {
-        Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters, variables, offset))
+    fn evaluate_function(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], context: &mut Context) -> Option<Result<String, SyntaxError>> {
+        Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters, context, offset))
     }
 }
 
 impl Evaluator for SimpleEvaluationEngine {
-    fn evaluate(&self, syntax_node: &SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError> {
+    fn evaluate(&self, syntax_node: &SyntaxNode, context: &mut Context) -> Result<String, SyntaxError> {
         evaluate(syntax_node, |identifier, offset, parameters|
-            self.evaluate_symbol(variables, identifier, offset, parameters),
+            self.evaluate_symbol(context, identifier, offset, parameters),
         )
     }
 }
 
-fn evaluate<E>(syntax_node: &SyntaxNode, evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: Fn(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
+fn evaluate<E>(syntax_node: &SyntaxNode, mut evaluate_symbol: E) -> Result<String, SyntaxError>
+    where E: FnMut(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
     match syntax_node {
         SyntaxNode::NamedNode { identifier, children, starts_at } =>
             evaluate_symbol(identifier.as_str(), *starts_at, children),
@@ -67,8 +67,8 @@ fn evaluate<E>(syntax_node: &SyntaxNode, evaluate_symbol: E) -> Result<String, S
     }
 }
 
-fn evaluate_nested<E>(offset: usize, children: &[SyntaxNode], evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: Fn(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
+fn evaluate_nested<E>(offset: usize, children: &[SyntaxNode], mut evaluate_symbol: E) -> Result<String, SyntaxError>
+    where E: FnMut(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
     if children.is_empty() {
         return Result::Ok("".to_string());
     }
@@ -105,35 +105,37 @@ mod tests {
 
     use crate::evaluator::engine::{SyntaxError, SimpleEvaluationEngine};
     use crate::evaluator::ast::SyntaxNode;
-    use crate::evaluator::{Evaluator, Function, EvaluationError};
+    use crate::evaluator::{Evaluator, Function, EvaluationError, Context};
 
     #[test]
     fn should_evaluate_variable() {
         let mut variables = HashMap::new();
         variables.insert("variable".to_string(), "1234".to_string());
+        let mut context = Context::with_variables(variables);
         let engine = SimpleEvaluationEngine::from(HashMap::new());
 
         // variable subsitution
-        let result = engine.evaluate(&node_of("variable"), &variables);
+
+        let result = engine.evaluate(&node_of("variable"), &mut context);
         assert_eq!(result.ok(), Some("1234".to_string()));
 
         // number literal
-        let result = engine.evaluate(&node_of("-12.2"), &variables);
+        let result = engine.evaluate(&node_of("-12.2"), &mut context);
         assert_eq!(result.ok(), Some("-12.2".to_string()));
 
         // string literal
-        let result = engine.evaluate(&node_of("\"test\""), &variables);
+        let result = engine.evaluate(&node_of("\"test\""), &mut context);
         assert_eq!(result.ok(), Some("test".to_string()));
     }
 
     #[test]
     fn should_evaluate_function() {
-        let variables = HashMap::new();
+        let mut context = Context::empty();
         let mut functions = HashMap::new();
 
         // using closure as function in the evaluation engine
         let function =
-            |_evaluator: &dyn Evaluator, parameters: &[SyntaxNode], _variables: &HashMap<String, String>, offset: usize| {
+            |_evaluator: &dyn Evaluator, parameters: &[SyntaxNode], _context: &mut Context, offset: usize| {
                 if let Some(SyntaxNode::NamedNode { identifier, .. }) = parameters.get(0) {
                     Result::Ok(identifier.clone())
                 } else {
@@ -164,11 +166,11 @@ mod tests {
         };
 
         // correct function call
-        let result = engine.evaluate(&node, &variables);
+        let result = engine.evaluate(&node, &mut context);
         assert_eq!(result.ok(), Some("param".to_string()));
 
         // incorrect function call
-        let result = engine.evaluate(&node_of("our_function"), &variables);
+        let result = engine.evaluate(&node_of("our_function"), &mut context);
         assert_eq!(result.err(), Some(SyntaxError {
             relative_pos: 0,
             description: EvaluationError::InvalidArguments {
@@ -181,9 +183,9 @@ mod tests {
     #[test]
     fn should_fail_evaluation() {
         let engine = SimpleEvaluationEngine::from(HashMap::new());
-        let variables = HashMap::new();
+        let mut context = Context::empty();
 
-        let result = engine.evaluate(&node_of("unknown"), &variables);
+        let result = engine.evaluate(&node_of("unknown"), &mut context);
         assert_eq!(result.err(), Some(SyntaxError {
             relative_pos: 0,
             description: EvaluationError::UnknownSymbol {

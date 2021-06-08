@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
-use crate::evaluator::Function;
+use crate::evaluator::{Function, Context};
 use crate::template::Template;
 use crate::evaluator::engine::SimpleEvaluationEngine;
 use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
@@ -52,7 +52,7 @@ pub fn compile_template_from(template: Template, variables: HashMap<String, Stri
     let engine = SimpleEvaluationEngine::from(functions);
     let compiler = TemplateCompiler::new(engine);
 
-    compiler.compile(&template, &variables)
+    compiler.compile(&template, Context::with_variables(variables))
 }
 
 #[cfg(test)]

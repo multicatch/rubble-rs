@@ -1,4 +1,4 @@
-use crate::evaluator::{Function, SyntaxError, EvaluationError};
+use crate::evaluator::{Function, SyntaxError, EvaluationError, Context};
 use std::collections::HashMap;
 use crate::evaluator::functions::{SimpleFunction, FunctionWithContext};
 use std::num::ParseFloatError;
@@ -85,7 +85,7 @@ pub fn plus_function(parameters: &[String]) -> String {
 /// ```text
 /// 5.9
 /// ```
-pub fn minus_function(parameters: &[String], _variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
+pub fn minus_function(parameters: &[String], _context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
     let mut index: usize = 0;
     let numbers: Result<Vec<f64>, ParseFloatError> = parameters.iter()
         .map(|number| {

@@ -1,6 +1,5 @@
 use crate::template::content::{EvaluableMixedContent, EvaluableMixedContentIterator, TemplateSlice};
-use std::collections::HashMap;
-use crate::evaluator::{Evaluator, SyntaxError};
+use crate::evaluator::{Evaluator, SyntaxError, Context};
 use crate::template::Template;
 use crate::evaluator::ast::parse_ast;
 use std::error::Error;
@@ -20,7 +19,7 @@ pub trait Compiler<T> {
     /// Iterator that can provide template parts that need to be compiled.
     type ItemIterator: Iterator<Item = Self::Item>;
 
-    fn compile<C>(&self, content: C, variables: &HashMap<String, String>) -> Result<String, CompilationError>
+    fn compile<C>(&self, content: C, context: Context) -> Result<String, CompilationError>
         where C: EvaluableMixedContent<T, Item=Self::Item, IntoIter=Self::ItemIterator>;
 }
 
@@ -57,15 +56,18 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
     type Item = TemplateSlice<'a>;
     type ItemIterator = EvaluableMixedContentIterator<'a, Template>;
 
-    fn compile<C>(&self, content: C, variables: &HashMap<String, String>) -> Result<String, CompilationError>
+    fn compile<C>(&self, content: C, context: Context) -> Result<String, CompilationError>
         where C: EvaluableMixedContent<&'a Template, Item=Self::Item, IntoIter=Self::ItemIterator> {
         let mut result = String::new();
+
+        let mut context = context;
+        let context = &mut context;
 
         for item in content {
             let compiled = match item {
                 TemplateSlice::Text { value, .. } => value.to_string(),
                 TemplateSlice::Code { value, start_position, .. } => self.engine
-                    .evaluate(&parse_ast(value), variables)
+                    .evaluate(&parse_ast(value), context)
                     .map_err(|err| CompilationError::EvaluationFailed {
                         error: err,
                         position: start_position,
@@ -86,7 +88,7 @@ mod tests {
     use crate::evaluator::engine::SimpleEvaluationEngine;
     use std::collections::HashMap;
     use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
-    use crate::evaluator::{SyntaxError, EvaluationError};
+    use crate::evaluator::{SyntaxError, EvaluationError, Context};
 
     #[test]
     fn should_compile_template() {
@@ -96,7 +98,7 @@ mod tests {
         let mut variables = HashMap::new();
         variables.insert("variable".to_string(), "Hello world".to_string());
 
-        let result = compiler.compile(&template, &variables);
+        let result = compiler.compile(&template, Context::with_variables(variables));
 
         assert_eq!(result, Ok("Some simple-template. Hello world - or something".to_string()));
     }
@@ -106,9 +108,8 @@ mod tests {
         let template = Template::from("Should fail. {{ variable }}".to_string());
         let engine = SimpleEvaluationEngine::from(HashMap::new());
         let compiler = TemplateCompiler::new(engine);
-        let variables = HashMap::new();
 
-        let result = compiler.compile(&template, &variables);
+        let result = compiler.compile(&template, Context::empty());
 
         assert_eq!(result, Err(CompilationError::EvaluationFailed {
             error: SyntaxError {

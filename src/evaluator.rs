@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use ast::SyntaxNode;
+use std::any::{Any, TypeId};
 
 pub mod ast;
 pub mod engine;
@@ -11,7 +12,59 @@ pub mod functions;
 /// AST are not constructed by the [Evaluator], they are consumed by it.
 ///
 pub trait Evaluator {
-    fn evaluate(&self, syntax_node: &SyntaxNode, variables: &HashMap<String, String>) -> Result<String, SyntaxError>;
+    fn evaluate(&self, syntax_node: &SyntaxNode, context: &mut Context) -> Result<String, SyntaxError>;
+}
+
+/// Context that is passed while evaluating an AST by an [Evaluator].
+///
+/// Contains all variables and states that can be shared between functions during evaluations.
+/// Functions should be free to store any state that will be shared between function invocations.
+///
+/// Variables are stored in a map, keys are Strings and values are also Strings.
+/// State is stored in a heterogeneous container, which means that is accepts any struct.
+/// Structs in this store are identifier by their [TypeId].
+///
+pub struct Context {
+    variables: HashMap<String, String>,
+    states: HashMap<TypeId, Box<dyn Any>>,
+}
+
+impl Context {
+    pub fn empty() -> Context {
+        Context {
+            variables: HashMap::new(),
+            states: HashMap::new(),
+        }
+    }
+
+    pub fn with_variables(variables: HashMap<String, String>) -> Context {
+        Context {
+            variables,
+            states: HashMap::new(),
+        }
+    }
+
+    pub fn set_variable(&mut self, name: &str, value: &str) {
+        self.variables.insert(name.to_string(), value.to_string());
+    }
+
+    pub fn get_variable(&self, name: &str) -> Option<&String> {
+        self.variables.get(name)
+    }
+
+    pub fn save_state<T: Any>(&mut self, state: T) {
+        let key = TypeId::of::<T>();
+        self.states.insert(key, Box::new(state));
+    }
+
+    pub fn get_state<T: Any>(&self) -> Option<&T> {
+        let key = TypeId::of::<T>();
+        self.states.get(&key)
+            .map(|it|
+                it.downcast_ref::<T>()
+                    .unwrap()
+            )
+    }
 }
 
 /// An error that can happen during evaluation with full info about where and what happened.
@@ -69,7 +122,7 @@ pub enum EvaluationError {
 /// Parameter evaluation with a supplied Evaluator is optional and a given [Function] can evaluate
 /// them independently.
 pub trait Function {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError>;
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError>;
 }
 
 /// Impl for [Function] that allows to use lambda as a function in [Evaluator].
@@ -79,17 +132,17 @@ pub trait Function {
 ///
 /// Example:
 /// ```
-/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError};
+/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError, Context};
 /// use rubble_templates::evaluator::ast::SyntaxNode;
-/// use std::collections::HashMap;
 /// use rubble_templates::template::Template;
 /// use rubble_templates::compile_template_from_string;
+/// use std::collections::HashMap;
 ///
-/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, _offset: usize) -> Result<String, SyntaxError> {
+/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, _offset: usize) -> Result<String, SyntaxError> {
 ///     Ok(
 ///         parameters.iter()
 ///             .map(|node|
-///                 evaluator.evaluate(node, variables).unwrap().parse::<i32>().unwrap()
+///                 evaluator.evaluate(node, context).unwrap().parse::<i32>().unwrap()
 ///             )
 ///             .sum::<i32>()
 ///             .to_string()
@@ -104,8 +157,8 @@ pub trait Function {
 /// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 /// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
-impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError> {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], variables: &HashMap<String, String>, offset: usize) -> Result<String, SyntaxError> {
-        self(evaluator, &parameters, variables, offset)
+impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError> {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
+        self(evaluator, &parameters, context, offset)
     }
 }
