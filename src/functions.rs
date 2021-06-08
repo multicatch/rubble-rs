@@ -85,7 +85,7 @@ pub fn plus_function(parameters: &[String]) -> String {
 /// ```text
 /// 5.9
 /// ```
-pub fn minus_function(parameters: &[String], _context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
+pub fn minus_function(parameters: &[String], _context: &mut Context) -> Result<String, SyntaxError> {
     let mut index: usize = 0;
     let numbers: Result<Vec<f64>, ParseFloatError> = parameters.iter()
         .map(|number| {
@@ -95,13 +95,11 @@ pub fn minus_function(parameters: &[String], _context: &mut Context, offset: usi
         .collect();
 
     if let Result::Err(error) = numbers {
-        Err(SyntaxError {
-            relative_pos: offset,
-            description: EvaluationError::InvalidValues {
+        Err(SyntaxError::new(EvaluationError::InvalidValues {
                 description: Some(error.to_string()),
                 values: vec![parameters[index - 1].clone()],
-            },
-        })
+            })
+        )
     } else {
         Ok(numbers.unwrap()
             .into_iter()

@@ -44,7 +44,13 @@ impl SimpleEvaluationEngine {
     }
 
     fn evaluate_function(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], context: &mut Context) -> Option<Result<String, SyntaxError>> {
-        Some(self.functions.get(identifier)?.evaluate(self as &dyn Evaluator, &parameters, context, offset))
+        Some(self.functions.get(identifier)?
+            .evaluate(self as &dyn Evaluator, &parameters, context)
+            .map_err(|mut err|  {
+                err.relative_pos += offset;
+                err
+            })
+        )
     }
 }
 
@@ -135,17 +141,14 @@ mod tests {
 
         // using closure as function in the evaluation engine
         let function =
-            |_evaluator: &dyn Evaluator, parameters: &[SyntaxNode], _context: &mut Context, offset: usize| {
+            |_evaluator: &dyn Evaluator, parameters: &[SyntaxNode], _context: &mut Context| {
                 if let Some(SyntaxNode::NamedNode { identifier, .. }) = parameters.get(0) {
                     Result::Ok(identifier.clone())
                 } else {
-                    Result::Err(SyntaxError {
-                        relative_pos: offset,
-                        description: EvaluationError::InvalidArguments {
-                            description: None,
-                            arguments: parameters.to_vec(),
-                        },
-                    })
+                    Result::Err(SyntaxError::new(EvaluationError::InvalidArguments {
+                        description: None,
+                        arguments: parameters.to_vec()
+                    }))
                 }
             };
 

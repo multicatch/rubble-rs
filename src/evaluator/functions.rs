@@ -41,8 +41,8 @@ impl<F> SimpleFunction<F> where F: Fn(&[String]) -> String {
 }
 
 impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
-        let parameters = resolve_params(evaluator, parameters, context, offset);
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        let parameters = resolve_params(evaluator, parameters, context);
         match parameters {
             Ok(parameters) => Ok((self.function)(&parameters)),
             Err(err) => Err(err)
@@ -51,7 +51,7 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in [Evaluator].
+/// A wrapper for a `Fn(&dyn Evaluator, &[String], &HashMap<String, String>) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```
@@ -62,7 +62,7 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// use rubble_templates::compile_template_from_string;
 /// use rubble_templates::evaluator::functions::FunctionWithContext;
 ///
-/// fn plus_function(parameters: &[String], _context: &mut Context, _offset: usize) -> Result<String, SyntaxError> {
+/// fn plus_function(parameters: &[String], _context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
 ///         parameters.iter()
 ///             .map(|param|
@@ -81,28 +81,28 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 /// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
-pub struct FunctionWithContext<F> where F: Fn(&[String], &mut Context, usize) -> Result<String, SyntaxError> {
+pub struct FunctionWithContext<F> where F: Fn(&[String], &mut Context) -> Result<String, SyntaxError> {
     function: F
 }
 
-impl<F> FunctionWithContext<F> where F: Fn(&[String], &mut Context, usize) -> Result<String, SyntaxError> {
+impl<F> FunctionWithContext<F> where F: Fn(&[String], &mut Context) -> Result<String, SyntaxError> {
     pub fn new(function: F) -> Box<FunctionWithContext<F>> {
         Box::new(FunctionWithContext { function })
     }
 }
 
-impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context, usize) -> Result<String, SyntaxError> {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
-        let parameters = resolve_params(evaluator, parameters, context, offset);
+impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context) -> Result<String, SyntaxError> {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        let parameters = resolve_params(evaluator, parameters, context);
         match parameters {
-            Ok(parameters) => (self.function)(&parameters, context, offset),
+            Ok(parameters) => (self.function)(&parameters, context),
             Err(err) => Err(err)
         }
     }
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`, to be used in [Evaluator].
+/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```
@@ -113,7 +113,7 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context,
 /// use rubble_templates::compile_template_from_string;
 /// use rubble_templates::evaluator::functions::FunctionWithAst;
 ///
-/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, _offset: usize) -> Result<String, SyntaxError> {
+/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
 ///         parameters.iter()
 ///             .map(|node|
@@ -132,19 +132,19 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context,
 /// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 /// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
-pub struct FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError> {
+pub struct FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError> {
     function: F
 }
 
-impl<F> FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError> {
+impl<F> FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError> {
     pub fn new(function: F) -> Box<FunctionWithAst<F>> {
         Box::new(FunctionWithAst { function })
     }
 }
 
-impl<F> Function for FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError> {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
-        (self.function)(evaluator, &parameters, context, offset)
+impl<F> Function for FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError> {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        (self.function)(evaluator, &parameters, context)
     }
 }
 
@@ -152,16 +152,10 @@ impl<F> Function for FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode
 ///
 /// Invokes Evaluator on each [SyntaxNode] and returns a `Result` containing a `Vec` of strings (baked parameters ready to use)
 /// or a [SyntaxError] if any parameter evaluation fails.
-pub fn resolve_params(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<Vec<String>, SyntaxError> {
+pub fn resolve_params(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<Vec<String>, SyntaxError> {
     parameters.iter()
         .map(|parameter| {
             evaluator.evaluate(parameter, context)
         })
         .collect::<Result<Vec<String>, SyntaxError>>()
-        .map_err(|err| with_relative_pos(err, offset))
-}
-
-fn with_relative_pos(mut err: SyntaxError, offset: usize) -> SyntaxError {
-    err.relative_pos += offset;
-    err
 }

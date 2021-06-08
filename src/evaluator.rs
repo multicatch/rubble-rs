@@ -82,6 +82,27 @@ pub struct SyntaxError {
     pub description: EvaluationError,
 }
 
+impl SyntaxError {
+    /// Creates new [SyntaxError] with given [EvaluationError].
+    ///
+    /// Preferred way to create [SyntaxError] when the position of error is unknown.
+    /// When the relative position is known, please construct this using `at_pos`.
+    pub fn new(error: EvaluationError) -> SyntaxError {
+        SyntaxError {
+            relative_pos: 0,
+            description: error
+        }
+    }
+
+    /// Creates new [SyntaxError] with given [EvaluationError] at known relative position..
+    pub fn at_position(position: usize, error: EvaluationError) -> SyntaxError {
+        SyntaxError {
+            relative_pos: position,
+            description: error
+        }
+    }
+}
+
 /// An error that can happen during evaluation.
 ///
 /// Used by an [Evaluator] or [Function] to indicate that something bad happened.
@@ -122,12 +143,12 @@ pub enum EvaluationError {
 /// Parameter evaluation with a supplied Evaluator is optional and a given [Function] can evaluate
 /// them independently.
 pub trait Function {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError>;
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError>;
 }
 
 /// Impl for [Function] that allows to use lambda as a function in [Evaluator].
 ///
-/// Allows to use `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>` as [Function] in [Evaluator].
+/// Allows to use `Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError>` as [Function] in [Evaluator].
 /// For other implementations, see [functions].
 ///
 /// Example:
@@ -138,7 +159,7 @@ pub trait Function {
 /// use rubble_templates::compile_template_from_string;
 /// use std::collections::HashMap;
 ///
-/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, _offset: usize) -> Result<String, SyntaxError> {
+/// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
 ///         parameters.iter()
 ///             .map(|node|
@@ -157,8 +178,8 @@ pub trait Function {
 /// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
 /// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
-impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError> {
-    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context, offset: usize) -> Result<String, SyntaxError> {
-        self(evaluator, &parameters, context, offset)
+impl<F> Function for F where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError> {
+    fn evaluate(&self, evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        self(evaluator, &parameters, context)
     }
 }
