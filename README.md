@@ -110,12 +110,18 @@ Evaluator can be extended with functions by using custom `Function` trait implem
 To make this process easier, there is `evaluator::functions` module that contains structs that can be used with static functions and lambdas:
 * `SimpleFunction` - for `Fn(&[String]) -> String`. 
   Use this when you want to implement a simple function without any side effects.
-* `FunctionWithContext` - for `Fn(&[String], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`. 
+* `FunctionWithContext` - for `Fn(&[String], &mut Context, usize) -> Result<String, SyntaxError>`. 
   Use this when you want to use pre-evaluated parameters, but you still need variables. 
   Side effects can cause errors indicated by SyntaxError. 
-* `FunctionWithAst` - for `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>, usize) -> Result<String, SyntaxError>`.
+* `FunctionWithAst` - for `Fn(&dyn Evaluator, &[SyntaxNode], &mut Context, usize) -> Result<String, SyntaxError>`.
   Gives full access to `SyntaxNode`s of parameters and `Evaluator`. 
   Allows evaluating additional expressions, manipulating the AST or introducing DSL (domain-specific language).
+
+Mind you, `Context` is a struct that holds variables and states that can be shared between function invocations. 
+You can use it to store some properties.
+
+The `usize` parameter is the source code offset - the offset where the currently evaluated source code starts.
+It can be used to calculate `SyntaxError` position (`relative_pos`).
 
 Examples for each struct are provided in the documentation. Refer to the generated docs for more specific info.
 
