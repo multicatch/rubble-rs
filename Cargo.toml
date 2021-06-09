@@ -14,3 +14,7 @@ exclude = [
 ]
 
 [dependencies]
+log = { version = "0.4", features = ["std", "serde"] }
+
+[dev-dependencies]
+env_logger = { version = "0.8.3" }

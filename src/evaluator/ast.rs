@@ -1,5 +1,6 @@
 use crate::template::content::{START_PATTERN, END_PATTERN};
 use std::fmt::{Debug, Display, Formatter};
+use log::{debug, trace, log_enabled, Level};
 
 /// Represents a node in an AST
 ///
@@ -91,18 +92,28 @@ impl Display for Position {
 /// * `plus 1 2 (times 3 4)` - interpreted as `1 + 2 + (3 * 4)`, given `plus` is an addition function and `times` is a multiplication function
 ///
 pub fn parse_ast(source: &str) -> SyntaxNode {
+    if log_enabled!(Level::Debug) {
+        debug!("Starting to parse AST of: {}", source);
+    }
     let source = source.strip_prefix(START_PATTERN).unwrap_or(source);
     let source = source.strip_suffix(END_PATTERN).unwrap_or(source);
 
-    next_node_of(source, 0).0
+    let result = next_node_of(source, 0).0;
+    if log_enabled!(Level::Debug) {
+        debug!("Parsing complete, result: {:?}", result);
+    }
+    result
 }
 
 struct SyntaxScanResult(SyntaxNode, usize);
 
 fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
+    if log_enabled!(Level::Trace) {
+        trace!("Currently parsing: {}", source);
+    }
     let mut syntax_node = SyntaxNode::AnonymousNode {
         children: vec![],
-        starts_at: Position::RelativeToCodeStart(offset)
+        starts_at: Position::RelativeToCodeStart(offset),
     };
     let mut identifier = "".to_string();
     let mut string_started = false;
@@ -133,7 +144,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
             if char == ' ' || char == ')' {
                 if let Some(node) = syntax_node.add_identifier_or_child(
                     &identifier,
-                    identifier_start + 1
+                    identifier_start + 1,
                 ) {
                     syntax_node = node;
                 }
@@ -144,12 +155,19 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
             }
 
             if char == ')' {
+                if log_enabled!(Level::Trace) {
+                    trace!("Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", position, source, syntax_node);
+                }
                 return SyntaxScanResult(syntax_node, position);
             }
         }
     }
 
-    SyntaxScanResult(syntax_node, offset + source_length)
+    let end_pos = offset + source_length;
+    if log_enabled!(Level::Trace) {
+        trace!("Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", end_pos, source, syntax_node);
+    }
+    SyntaxScanResult(syntax_node, end_pos)
 }
 
 fn extract_string(identifier: String, char: char, string_started: bool) -> (String, bool) {
@@ -172,7 +190,7 @@ fn start_node(syntax_node: SyntaxNode, identifier: &str, source_remainder: &str,
     let mut syntax_node = syntax_node;
     if let Some(node) = syntax_node.add_identifier_or_child(
         identifier,
-        identifier_start
+        identifier_start,
     ) {
         syntax_node = node;
     }
@@ -192,23 +210,30 @@ impl SyntaxNode {
 
     fn add_identifier_or_child(&self, new_identifier: &str, identifier_starts_at: usize) -> Option<SyntaxNode> {
         if new_identifier.is_empty() {
+            if log_enabled!(Level::Trace) {
+                trace!("Expected identifier at {}, but got disappointed.", identifier_starts_at);
+            }
             return None;
         }
 
+        trace!("Adding a symbol with identifier \"{}\" at {}", new_identifier, identifier_starts_at);
         match self {
             SyntaxNode::AnonymousNode { children, .. } =>
                 Some(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: children.clone(),
-                    starts_at: Position::RelativeToCodeStart(identifier_starts_at)
+                    starts_at: Position::RelativeToCodeStart(identifier_starts_at),
                 }),
 
             SyntaxNode::NamedNode { identifier, children, starts_at } => {
+                if log_enabled!(Level::Trace) {
+                    trace!("\"{}\" at {} is a child of \"{}\" at {}", new_identifier, identifier_starts_at, identifier, starts_at);
+                }
                 let mut children = children.clone();
                 children.push(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: vec![],
-                    starts_at: Position::RelativeToCodeStart(identifier_starts_at)
+                    starts_at: Position::RelativeToCodeStart(identifier_starts_at),
                 });
                 Some(SyntaxNode::NamedNode {
                     identifier: identifier.clone(),
@@ -224,9 +249,19 @@ impl SyntaxNode {
 mod tests {
     use crate::evaluator::ast::{parse_ast, Position};
     use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
+    use log::LevelFilter;
+
+    fn init() {
+        let _ = env_logger::builder()
+            .filter_level(LevelFilter::Trace)
+            .is_test(true)
+            .try_init();
+    }
 
     #[test]
     fn should_parse_ast() {
+        init();
+
         let input = "{{ (list 1 2 (if a b c)) }}";
         let actual = parse_ast(input);
 
@@ -240,7 +275,7 @@ mod tests {
                         NamedNode {
                             identifier: "1".to_string(),
                             children: vec![],
-                            starts_at: Position::RelativeToCodeStart(7)
+                            starts_at: Position::RelativeToCodeStart(7),
                         },
                         NamedNode {
                             identifier: "2".to_string(),
@@ -270,7 +305,7 @@ mod tests {
                         },
                     ],
                 },
-            ]
+            ],
         };
         assert_eq!(expected, actual);
     }

@@ -54,7 +54,6 @@ impl SimpleEvaluationEngine {
 impl Evaluator for SimpleEvaluationEngine {
     fn evaluate(&self, syntax_node: &SyntaxNode, context: &mut Context) -> Result<String, SyntaxError> {
         evaluate(syntax_node, |identifier, offset, parameters|
-            // here
             self.evaluate_symbol(context, identifier, offset, parameters),
         )
     }
