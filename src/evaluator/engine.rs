@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::evaluator::ast::SyntaxNode;
+use crate::evaluator::ast::{SyntaxNode, Position};
 use crate::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Context};
 
 /// Simple evaluation engine providing basic features like variable and function evaluation.
@@ -12,7 +12,7 @@ use crate::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Contex
 /// This engine always uses the same Functions for evaluations, but can be supplied with different
 /// parameters during every evaluation.
 pub struct SimpleEvaluationEngine {
-    functions: HashMap<String, Box<dyn Function>>
+    functions: HashMap<String, Box<dyn Function>>,
 }
 
 impl SimpleEvaluationEngine {
@@ -22,32 +22,29 @@ impl SimpleEvaluationEngine {
         }
     }
 
-    fn evaluate_symbol(&self, context: &mut Context, identifier: &str, offset: usize, parameters: &[SyntaxNode]) -> Result<String, SyntaxError> {
+    fn evaluate_symbol(&self, context: &mut Context, identifier: &str, offset: Position, parameters: &[SyntaxNode]) -> Result<String, SyntaxError> {
         match context.get_variable(identifier).cloned() {
             Some(result) => Ok(result),
             None => self.evaluate_function_or_literal(identifier, offset, parameters, context),
         }
     }
 
-    fn evaluate_function_or_literal(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
-        self.evaluate_function(identifier, offset, parameters, context)
+    fn evaluate_function_or_literal(&self, identifier: &str, offset: Position, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
+        self.evaluate_function(identifier, offset.clone(), parameters, context)
             .unwrap_or_else(|| {
                 extract_literal(identifier)
                     .map(|it| it.to_string())
-                    .ok_or(SyntaxError {
-                        relative_pos: offset,
-                        description: EvaluationError::UnknownSymbol {
-                            symbol: identifier.to_string(),
-                        },
-                    })
+                    .ok_or_else(|| SyntaxError::at_position(offset, EvaluationError::UnknownSymbol {
+                        symbol: identifier.to_string(),
+                    }))
             })
     }
 
-    fn evaluate_function(&self, identifier: &str, offset: usize, parameters: &[SyntaxNode], context: &mut Context) -> Option<Result<String, SyntaxError>> {
+    fn evaluate_function(&self, identifier: &str, offset: Position, parameters: &[SyntaxNode], context: &mut Context) -> Option<Result<String, SyntaxError>> {
         Some(self.functions.get(identifier)?
             .evaluate(self as &dyn Evaluator, &parameters, context)
-            .map_err(|mut err|  {
-                err.relative_pos += offset;
+            .map_err(|mut err| {
+                err.invocation_pos = offset;
                 err
             })
         )
@@ -57,39 +54,37 @@ impl SimpleEvaluationEngine {
 impl Evaluator for SimpleEvaluationEngine {
     fn evaluate(&self, syntax_node: &SyntaxNode, context: &mut Context) -> Result<String, SyntaxError> {
         evaluate(syntax_node, |identifier, offset, parameters|
+            // here
             self.evaluate_symbol(context, identifier, offset, parameters),
         )
     }
 }
 
 fn evaluate<E>(syntax_node: &SyntaxNode, mut evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: FnMut(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
+    where E: FnMut(&str, Position, &[SyntaxNode]) -> Result<String, SyntaxError> {
     match syntax_node {
         SyntaxNode::NamedNode { identifier, children, starts_at } =>
-            evaluate_symbol(identifier.as_str(), *starts_at, children),
+            evaluate_symbol(identifier.as_str(), starts_at.clone(), children),
 
         SyntaxNode::AnonymousNode { children, starts_at } =>
-            evaluate_nested(*starts_at, children, evaluate_symbol),
+            evaluate_nested(starts_at.clone(), children, evaluate_symbol),
     }
 }
 
-fn evaluate_nested<E>(offset: usize, children: &[SyntaxNode], mut evaluate_symbol: E) -> Result<String, SyntaxError>
-    where E: FnMut(&str, usize, &[SyntaxNode]) -> Result<String, SyntaxError> {
+fn evaluate_nested<E>(offset: Position, children: &[SyntaxNode], mut evaluate_symbol: E) -> Result<String, SyntaxError>
+    where E: FnMut(&str, Position, &[SyntaxNode]) -> Result<String, SyntaxError> {
     if children.is_empty() {
         return Result::Ok("".to_string());
     }
 
     let child = children[0].clone();
     if children.len() > 1 {
-        Result::Err(SyntaxError {
-            relative_pos: offset,
-            description: EvaluationError::UnexpectedElements {
-                last_expected: Some(child),
-                unexpected_elements: children[1..].to_vec(),
-            },
-        })
-    } else if let SyntaxNode::NamedNode { identifier, children, .. } = child {
-        evaluate_symbol(identifier.as_str(), offset, children.as_slice())
+        Result::Err(SyntaxError::at_position(offset, EvaluationError::UnexpectedElements {
+            last_expected: Some(child),
+            unexpected_elements: children[1..].to_vec(),
+        }))
+    } else if let SyntaxNode::NamedNode { identifier, starts_at, children } = child {
+        evaluate_symbol(identifier.as_str(), starts_at, children.as_slice())
     } else {
         evaluate(&child, evaluate_symbol)
     }
@@ -110,7 +105,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::evaluator::engine::{SyntaxError, SimpleEvaluationEngine};
-    use crate::evaluator::ast::SyntaxNode;
+    use crate::evaluator::ast::{SyntaxNode, Position};
     use crate::evaluator::{Evaluator, Function, EvaluationError, Context};
 
     #[test]
@@ -147,7 +142,7 @@ mod tests {
                 } else {
                     Result::Err(SyntaxError::new(EvaluationError::InvalidArguments {
                         description: None,
-                        arguments: parameters.to_vec()
+                        arguments: parameters.to_vec(),
                     }))
                 }
             };
@@ -158,11 +153,11 @@ mod tests {
         // our function call
         let node = SyntaxNode::NamedNode {
             identifier: "our_function".to_string(),
-            starts_at: 0,
+            starts_at: Position::Unknown,
             children: vec![
                 SyntaxNode::NamedNode {
                     identifier: "param".to_string(),
-                    starts_at: 0,
+                    starts_at: Position::Unknown,
                     children: vec![],
                 },
             ],
@@ -175,7 +170,8 @@ mod tests {
         // incorrect function call
         let result = engine.evaluate(&node_of("our_function"), &mut context);
         assert_eq!(result.err(), Some(SyntaxError {
-            relative_pos: 0,
+            relative_pos: Position::Unknown,
+            invocation_pos: Position::RelativeToCodeStart(10),
             description: EvaluationError::InvalidArguments {
                 description: None,
                 arguments: vec![],
@@ -190,7 +186,8 @@ mod tests {
 
         let result = engine.evaluate(&node_of("unknown"), &mut context);
         assert_eq!(result.err(), Some(SyntaxError {
-            relative_pos: 0,
+            relative_pos: Position::RelativeToCodeStart(10),
+            invocation_pos: Position::Unknown,
             description: EvaluationError::UnknownSymbol {
                 symbol: "unknown".to_string()
             },
@@ -199,11 +196,11 @@ mod tests {
 
     fn node_of(identifier: &str) -> SyntaxNode {
         SyntaxNode::AnonymousNode {
-            starts_at: 0,
+            starts_at: Position::RelativeToCodeStart(0),
             children: vec![
                 SyntaxNode::NamedNode {
                     identifier: identifier.to_string(),
-                    starts_at: 0,
+                    starts_at: Position::RelativeToCodeStart(10),
                     children: vec![],
                 }
             ],

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use ast::SyntaxNode;
 use std::any::{Any, TypeId};
+use crate::evaluator::ast::Position;
 
 pub mod ast;
 pub mod engine;
@@ -78,7 +79,8 @@ impl Context {
 ///
 #[derive(Debug, PartialEq)]
 pub struct SyntaxError {
-    pub relative_pos: usize,
+    pub relative_pos: Position,
+    pub invocation_pos: Position,
     pub description: EvaluationError,
 }
 
@@ -89,15 +91,17 @@ impl SyntaxError {
     /// When the relative position is known, please construct this using `at_pos`.
     pub fn new(error: EvaluationError) -> SyntaxError {
         SyntaxError {
-            relative_pos: 0,
-            description: error
+            relative_pos: Position::Unknown,
+            invocation_pos: Position::Unknown,
+            description: error,
         }
     }
 
     /// Creates new [SyntaxError] with given [EvaluationError] at known relative position..
-    pub fn at_position(position: usize, error: EvaluationError) -> SyntaxError {
+    pub fn at_position(position: Position, error: EvaluationError) -> SyntaxError {
         SyntaxError {
             relative_pos: position,
+            invocation_pos: Position::Unknown,
             description: error
         }
     }

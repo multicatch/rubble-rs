@@ -1,5 +1,5 @@
 use crate::template::content::{START_PATTERN, END_PATTERN};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Formatter};
 
 /// Represents a node in an AST
 ///
@@ -35,13 +35,43 @@ use std::fmt::Debug;
 pub enum SyntaxNode {
     NamedNode {
         identifier: String,
-        starts_at: usize,
+        starts_at: Position,
         children: Vec<SyntaxNode>,
     },
     AnonymousNode {
-        starts_at: usize,
+        starts_at: Position,
         children: Vec<SyntaxNode>,
     },
+}
+
+/// Represents a position of node/symbol in template.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Position {
+    /// Used when there is no way to calculate the exact or approximate position.
+    Unknown,
+    /// Used to indicate a position relative to current function invocation.
+    RelativeToInvocation(usize),
+    /// Used to indicate a position relative to the start of currently evaluated block of code.
+    RelativeToCodeStart(usize),
+    /// Used to indicate an absolute position in current template.
+    Absolute(usize),
+}
+
+impl Position {
+    pub fn raw_value(&self) -> Option<usize> {
+        match self {
+            Position::Unknown => None,
+            Position::RelativeToInvocation(pos) => Some(pos),
+            Position::RelativeToCodeStart(pos) => Some(pos),
+            Position::Absolute(pos) => Some(pos),
+        }.cloned()
+    }
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 /// Used for parsing AST for further evaluation.
@@ -72,7 +102,7 @@ struct SyntaxScanResult(SyntaxNode, usize);
 fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
     let mut syntax_node = SyntaxNode::AnonymousNode {
         children: vec![],
-        starts_at: offset
+        starts_at: Position::RelativeToCodeStart(offset)
     };
     let mut identifier = "".to_string();
     let mut string_started = false;
@@ -170,7 +200,7 @@ impl SyntaxNode {
                 Some(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: children.clone(),
-                    starts_at: identifier_starts_at
+                    starts_at: Position::RelativeToCodeStart(identifier_starts_at)
                 }),
 
             SyntaxNode::NamedNode { identifier, children, starts_at } => {
@@ -178,12 +208,12 @@ impl SyntaxNode {
                 children.push(SyntaxNode::NamedNode {
                     identifier: new_identifier.to_string(),
                     children: vec![],
-                    starts_at: identifier_starts_at
+                    starts_at: Position::RelativeToCodeStart(identifier_starts_at)
                 });
                 Some(SyntaxNode::NamedNode {
                     identifier: identifier.clone(),
                     children,
-                    starts_at: *starts_at,
+                    starts_at: starts_at.clone(),
                 })
             }
         }
@@ -192,7 +222,7 @@ impl SyntaxNode {
 
 #[cfg(test)]
 mod tests {
-    use crate::evaluator::ast::parse_ast;
+    use crate::evaluator::ast::{parse_ast, Position};
     use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
 
     #[test]
@@ -201,39 +231,39 @@ mod tests {
         let actual = parse_ast(input);
 
         let expected = AnonymousNode {
-            starts_at: 0,
+            starts_at: Position::RelativeToCodeStart(0),
             children: vec![
                 NamedNode {
                     identifier: "list".to_string(),
-                    starts_at: 2,
+                    starts_at: Position::RelativeToCodeStart(2),
                     children: vec![
                         NamedNode {
                             identifier: "1".to_string(),
                             children: vec![],
-                            starts_at: 7
+                            starts_at: Position::RelativeToCodeStart(7)
                         },
                         NamedNode {
                             identifier: "2".to_string(),
-                            starts_at: 9,
+                            starts_at: Position::RelativeToCodeStart(9),
                             children: vec![],
                         },
                         NamedNode {
                             identifier: "if".to_string(),
-                            starts_at: 11,
+                            starts_at: Position::RelativeToCodeStart(11),
                             children: vec![
                                 NamedNode {
                                     identifier: "a".to_string(),
-                                    starts_at: 14,
+                                    starts_at: Position::RelativeToCodeStart(14),
                                     children: vec![],
                                 },
                                 NamedNode {
                                     identifier: "b".to_string(),
-                                    starts_at: 16,
+                                    starts_at: Position::RelativeToCodeStart(16),
                                     children: vec![],
                                 },
                                 NamedNode {
                                     identifier: "c".to_string(),
-                                    starts_at: 18,
+                                    starts_at: Position::RelativeToCodeStart(18),
                                     children: vec![],
                                 },
                             ],

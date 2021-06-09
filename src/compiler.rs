@@ -1,7 +1,7 @@
 use crate::template::content::{EvaluableMixedContent, EvaluableMixedContentIterator, TemplateSlice};
 use crate::evaluator::{Evaluator, SyntaxError, Context};
 use crate::template::Template;
-use crate::evaluator::ast::parse_ast;
+use crate::evaluator::ast::{parse_ast, Position};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
@@ -27,7 +27,7 @@ pub trait Compiler<T> {
 pub enum CompilationError {
     EvaluationFailed {
         error: SyntaxError,
-        position: usize,
+        position: Position,
         source: String,
     },
 }
@@ -70,7 +70,7 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
                     .evaluate(&parse_ast(value), context)
                     .map_err(|err| CompilationError::EvaluationFailed {
                         error: err,
-                        position: start_position,
+                        position: Position::Absolute(start_position),
                         source: value.to_string(),
                     })?,
             };
@@ -89,6 +89,7 @@ mod tests {
     use std::collections::HashMap;
     use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
     use crate::evaluator::{SyntaxError, EvaluationError, Context};
+    use crate::evaluator::ast::Position;
 
     #[test]
     fn should_compile_template() {
@@ -112,13 +113,11 @@ mod tests {
         let result = compiler.compile(&template, Context::empty());
 
         assert_eq!(result, Err(CompilationError::EvaluationFailed {
-            error: SyntaxError {
-                relative_pos: 1,
-                description: EvaluationError::UnknownSymbol {
+            error: SyntaxError::at_position(Position::RelativeToCodeStart(1), EvaluationError::UnknownSymbol {
                     symbol: "variable".to_string()
                 }
-            },
-            position: 13,
+            ),
+            position: Position::Absolute(13),
             source: "{{ variable }}".to_string()
         }));
     }
