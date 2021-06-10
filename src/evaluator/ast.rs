@@ -98,7 +98,7 @@ pub fn parse_ast(source: &str) -> SyntaxNode {
     let source = source.strip_prefix(START_PATTERN).unwrap_or(source);
     let source = source.strip_suffix(END_PATTERN).unwrap_or(source);
 
-    let result = next_node_of(source, 0).0;
+    let result = next_node_of(source, 0, 0).0;
     if log_enabled!(Level::Debug) {
         debug!("Parsing complete, result: {:?}", result);
     }
@@ -107,9 +107,9 @@ pub fn parse_ast(source: &str) -> SyntaxNode {
 
 struct SyntaxScanResult(SyntaxNode, usize);
 
-fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
+fn next_node_of(source: &str, offset: usize, level: usize) -> SyntaxScanResult {
     if log_enabled!(Level::Trace) {
-        trace!("Currently parsing: {}", source);
+        trace!("{:->width$}>{}", "", source, width = level);
     }
     let mut syntax_node = SyntaxNode::AnonymousNode {
         children: vec![],
@@ -137,7 +137,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
         }
 
         if char == '(' {
-            let (new_node, skip_pos) = start_node(syntax_node, &identifier, &source[current_offset..], identifier_start + 1, position);
+            let (new_node, skip_pos) = start_node(syntax_node, &identifier, &source[current_offset..], identifier_start + 1, position, level);
             syntax_node = new_node;
             skip_end = skip_pos;
         } else {
@@ -145,6 +145,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
                 if let Some(node) = syntax_node.add_identifier_or_child(
                     &identifier,
                     identifier_start + 1,
+                    level,
                 ) {
                     syntax_node = node;
                 }
@@ -156,7 +157,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
 
             if char == ')' {
                 if log_enabled!(Level::Trace) {
-                    trace!("Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", position, source, syntax_node);
+                    trace!("{:->width$}Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", "", position, source, syntax_node, width = level);
                 }
                 return SyntaxScanResult(syntax_node, position);
             }
@@ -165,7 +166,7 @@ fn next_node_of(source: &str, offset: usize) -> SyntaxScanResult {
 
     let end_pos = offset + source_length;
     if log_enabled!(Level::Trace) {
-        trace!("Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", end_pos, source, syntax_node);
+        trace!("{:->width$}Parsing of the following fragment is complete (finished at {}): {}, result: {:?}", "", end_pos, source, syntax_node, width = level);
     }
     SyntaxScanResult(syntax_node, end_pos)
 }
@@ -186,15 +187,16 @@ fn extract_string(identifier: String, char: char, string_started: bool) -> (Stri
     (identifier, string_started)
 }
 
-fn start_node(syntax_node: SyntaxNode, identifier: &str, source_remainder: &str, identifier_start: usize, position: usize) -> (SyntaxNode, usize) {
+fn start_node(syntax_node: SyntaxNode, identifier: &str, source_remainder: &str, identifier_start: usize, position: usize, level: usize) -> (SyntaxNode, usize) {
     let mut syntax_node = syntax_node;
     if let Some(node) = syntax_node.add_identifier_or_child(
         identifier,
         identifier_start,
+        level,
     ) {
         syntax_node = node;
     }
-    let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position);
+    let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position, level + 1);
     syntax_node.add_child(child);
 
     (syntax_node, skip_pos)
@@ -208,15 +210,12 @@ impl SyntaxNode {
         }
     }
 
-    fn add_identifier_or_child(&self, new_identifier: &str, identifier_starts_at: usize) -> Option<SyntaxNode> {
+    fn add_identifier_or_child(&self, new_identifier: &str, identifier_starts_at: usize, level: usize) -> Option<SyntaxNode> {
         if new_identifier.is_empty() {
-            if log_enabled!(Level::Trace) {
-                trace!("Expected identifier at {}, but got disappointed.", identifier_starts_at);
-            }
             return None;
         }
 
-        trace!("Adding a symbol with identifier \"{}\" at {}", new_identifier, identifier_starts_at);
+        trace!("{:->width$}+\"{}\" at {}", "", new_identifier, identifier_starts_at, width = level);
         match self {
             SyntaxNode::AnonymousNode { children, .. } =>
                 Some(SyntaxNode::NamedNode {
@@ -227,7 +226,7 @@ impl SyntaxNode {
 
             SyntaxNode::NamedNode { identifier, children, starts_at } => {
                 if log_enabled!(Level::Trace) {
-                    trace!("\"{}\" at {} is a child of \"{}\" at {}", new_identifier, identifier_starts_at, identifier, starts_at);
+                    trace!("{:->width$}-\"{}\" at {} (child of \"{}\" at {})", "", new_identifier, identifier_starts_at, identifier, starts_at, width = level);
                 }
                 let mut children = children.clone();
                 children.push(SyntaxNode::NamedNode {
