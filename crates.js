@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["cfg_if","log","rubble_templates","serde"];
