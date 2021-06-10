@@ -96,12 +96,13 @@ let raw_input = "Hello there, {{ name }}!".to_string();
 let variables: HashMap<String, String> = HashMap::new();
 let functions: HashMap<String, Box<dyn Function>> = HashMap::new();
 
-// compilation below
+// prepare compilation evironment
 let template = Template::from(raw_input);
 let engine = SimpleEvaluationEngine::from(functions);
 let compiler = TemplateCompiler::new(engine);
 
-compiler.compile(&template, &variables)
+// compile template
+compiler.compile(&template, Context::with_variables(variables))
 ```
 
 ### Custom functions
