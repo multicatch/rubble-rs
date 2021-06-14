@@ -1,3 +1,5 @@
+//! Default parser logic
+
 use log::{debug, trace, log_enabled, Level};
 use rubble_templates_core::ast::SyntaxNode;
 use rubble_templates_core::units::Position;

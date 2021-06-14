@@ -1,3 +1,5 @@
+//! An API for representation of parsed templates.
+
 /// Represents content that can be both template parts and other fragments that should be evaluated.
 ///
 /// It can be used to represent some template source that has mixed content - eg. text, code,

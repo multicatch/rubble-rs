@@ -1,3 +1,5 @@
+//! An API for compilers that use a selected parser and evaluator, and compile output text.
+
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use crate::evaluator::{SyntaxError, Context};

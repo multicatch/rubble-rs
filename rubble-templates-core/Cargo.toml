@@ -1,6 +1,6 @@
 [package]
 name = "rubble-templates-core"
-description = "A template engine to compile text and evaluate code from template files"
+description = "Core traits and structs that are needed for text template evaluation."
 version = "0.1.3"
 authors = ["multicatch <cezaryre@gmail.com>"]
 edition = "2018"

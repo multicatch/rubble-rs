@@ -1,3 +1,40 @@
+//! An API for creating custom functions that extend the features of an evaluator.
+//!
+//! Evaluator can be extended with functions by using custom `Function` trait implementations.
+//! To make this process easier, there is `evaluator::functions` module that contains structs that can be used with static functions and lambdas:
+//! * [`SimpleFunction`] - Use this when you want to implement a simple function without any side effects.
+//! * [`FunctionWithContext`] - Use this when you want to use pre-evaluated parameters, but you still need variables.
+//!   Side effects can cause errors indicated by SyntaxError.
+//! * [`FunctionWithAst`] - Gives full access to `SyntaxNode`s of parameters and `Evaluator`.
+//!   Allows evaluating additional expressions, manipulating the AST or introducing DSL (domain-specific language).
+//!
+//! Mind you, [`Context`] is a struct that holds variables and states that can be shared between function invocations.
+//! You can use it to store some properties.
+//!
+//! Examples for each struct are provided in the documentation. Refer to the generated docs for more specific info.
+//!
+//! Basic example:
+//! ```rust
+//! use std::collections::HashMap;
+//! use rubble_templates_core::functions::SimpleFunction;
+//! use rubble_templates_core::evaluator::Function;
+//!
+//! fn plus_function(parameters: &[String]) -> String {
+//!     parameters.iter()
+//!          .map(|param|
+//!              param.parse::<i32>().unwrap()
+//!          )
+//!          .sum::<i32>()
+//!          .to_string()
+//! }
+//!
+//! let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
+//! functions.insert("plus".to_string(), SimpleFunction::new(plus_function)); // will be treated as Box<dyn Function>
+//!
+//! // Now functions can be used with any Evaluator that supports custom functions.
+//! // SimpleEvaluationEngine is the default and it supports such extensions.
+//! ```
+
 use crate::evaluator::{Function, Evaluator, SyntaxError, Context};
 use crate::ast::SyntaxNode;
 
@@ -43,7 +80,7 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[String], &HashMap<String, String>) -> Result<String, SyntaxError>`, to be used in [Evaluator].
+/// A wrapper for a `Fn(&dyn Evaluator, &[String], &mut Context) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```
@@ -87,7 +124,7 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context)
 }
 
 
-/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &HashMap<String, String>) -> Result<String, SyntaxError>`, to be used in [Evaluator].
+/// A wrapper for a `Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError>`, to be used in [Evaluator].
 ///
 /// Example:
 /// ```

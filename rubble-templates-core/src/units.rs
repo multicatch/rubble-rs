@@ -1,3 +1,5 @@
+//! Basic rubble-templates units.
+
 use std::fmt::{Display, Formatter};
 
 /// Represents a position of node/symbol in template.

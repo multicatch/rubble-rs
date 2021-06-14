@@ -1,3 +1,5 @@
+//! An API for evaluators that can be used to evaluate code fragments in the parsed template.
+
 use std::collections::HashMap;
 use std::any::{TypeId, Any};
 use crate::ast::SyntaxNode;
@@ -149,7 +151,7 @@ pub trait Function {
 /// Impl for [Function] that allows to use lambda as a function in [Evaluator].
 ///
 /// Allows to use `Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError>` as [Function] in [Evaluator].
-/// For other implementations, see [functions].
+/// For other implementations, see [crate::functions].
 ///
 /// Example:
 /// ```

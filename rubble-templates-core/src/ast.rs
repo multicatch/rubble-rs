@@ -1,3 +1,5 @@
+//! An API for AST representation.
+
 use std::fmt::{Display, Formatter};
 use crate::units::Position;
 

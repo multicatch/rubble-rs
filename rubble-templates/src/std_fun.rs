@@ -1,3 +1,29 @@
+//! This module contains standard functions for rubble-templates.
+//! Use [std_functions] to get a copy of map with those functions.
+//!
+//! ```rust
+//! use std::collections::HashMap;
+//! use rubble_templates::std_fun::std_functions;
+//! use rubble_templates_evaluators::simple::template::Template;
+//! use rubble_templates_evaluators::simple::evaluator::SimpleEvaluationEngine;
+//! use rubble_templates_evaluators::simple::compiler::TemplateCompiler;
+//! use rubble_templates_core::compiler::Compiler;
+//! use rubble_templates_core::evaluator::Context;
+//!
+//! let raw_input = "2 + 3 = {{ + 2 3 }}".to_string();
+//!
+//! // prepare compilation evironment
+//! let template = Template::from(raw_input);
+//! let engine = SimpleEvaluationEngine::from(std_functions());
+//! let compiler = TemplateCompiler::new(engine);
+//!
+//! let result = compiler.compile(&template, Context::empty());
+//!
+//! assert_eq!(result.unwrap(), "2 + 3 = 5".to_string());
+//! ```
+//!
+//! See [rubble_templates_core::functions] for more info on how to implement custom [Function]s.
+
 use rubble_templates_core::evaluator::{Function, SyntaxError, EvaluationError, Context};
 use std::collections::HashMap;
 use rubble_templates_core::functions::{SimpleFunction, FunctionWithContext};
@@ -7,6 +33,10 @@ const EMPTY_STRING: &str = "";
 
 /// Provides a set of standard functions.
 ///
+/// Available functions:
+/// * [`concat`](concat_function) - Concatenates parameters.
+/// * [`+`](plus_function) - Adds the parameters or concatenates them if it fails.
+/// * [`-`](minus_function) - Subtracts the parameters.
 pub fn std_functions() -> HashMap<String, Box<dyn Function>> {
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
     functions.insert("concat".to_string(), SimpleFunction::new(concat_function));
