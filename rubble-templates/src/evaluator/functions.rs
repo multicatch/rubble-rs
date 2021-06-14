@@ -1,13 +1,12 @@
-use crate::evaluator::{Function, Evaluator, SyntaxError, Context};
-use crate::evaluator::ast::SyntaxNode;
+use rubble_templates_core::evaluator::{Function, Evaluator, SyntaxError, Context};
+use rubble_templates_core::ast::SyntaxNode;
 
 /// A wrapper for a `Fn(&[String]) -> String`, to be used in [Evaluator].
 ///
 ///
 /// Example:
 /// ```
-/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError};
-/// use rubble_templates::evaluator::ast::SyntaxNode;
+/// use rubble_templates_core::evaluator::{Evaluator, Function, SyntaxError};
 /// use std::collections::HashMap;
 /// use rubble_templates::template::Template;
 /// use rubble_templates::compile_template_from_string;
@@ -55,12 +54,11 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 ///
 /// Example:
 /// ```
-/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError, Context};
-/// use rubble_templates::evaluator::ast::SyntaxNode;
 /// use std::collections::HashMap;
 /// use rubble_templates::template::Template;
 /// use rubble_templates::compile_template_from_string;
 /// use rubble_templates::evaluator::functions::FunctionWithContext;
+/// use rubble_templates_core::evaluator::{Context, SyntaxError, Function};
 ///
 /// fn plus_function(parameters: &[String], _context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
@@ -106,12 +104,12 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context)
 ///
 /// Example:
 /// ```
-/// use rubble_templates::evaluator::{Evaluator, Function, SyntaxError, Context};
-/// use rubble_templates::evaluator::ast::SyntaxNode;
+/// use rubble_templates_core::evaluator::{Evaluator, Function, SyntaxError, Context};
 /// use std::collections::HashMap;
 /// use rubble_templates::template::Template;
 /// use rubble_templates::compile_template_from_string;
 /// use rubble_templates::evaluator::functions::FunctionWithAst;
+/// use rubble_templates_core::ast::SyntaxNode;
 ///
 /// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(

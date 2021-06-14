@@ -1,10 +1,11 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
-use crate::evaluator::{Function, Context};
+use rubble_templates_core::evaluator::{Function, Context};
 use crate::template::Template;
 use crate::evaluator::engine::SimpleEvaluationEngine;
-use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
 use std::error::Error;
+use rubble_templates_core::compiler::{CompilationError, Compiler};
+use crate::compiler::TemplateCompiler;
 
 pub mod template;
 pub mod evaluator;
@@ -60,12 +61,12 @@ mod tests {
     use crate::compile_template_from_file;
     use std::path::PathBuf;
     use std::collections::HashMap;
-    use crate::evaluator::Function;
+    use rubble_templates_core::evaluator::Function;
     use crate::evaluator::functions::SimpleFunction;
 
     #[test]
     fn should_compile_template() {
-        let file = PathBuf::from("../test-assets/complex-template");
+        let file = PathBuf::from("test-assets/complex-template");
         let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
         functions.insert("plus".to_string(), SimpleFunction::new(plus_function));
 

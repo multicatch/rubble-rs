@@ -35,7 +35,7 @@ mod tests {
 
     #[test]
     fn should_create_template() {
-        let path_buf = PathBuf::from("../test-assets/simple-template");
+        let path_buf = PathBuf::from("test-assets/simple-template");
         let result = Template::read_from(&path_buf);
 
         let expected = Template::from("Some template {{ variable }} - or something".to_string());

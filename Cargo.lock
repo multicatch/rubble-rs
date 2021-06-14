@@ -99,6 +99,7 @@ version = "0.1.3"
 dependencies = [
  "env_logger",
  "log",
+ "rubble-templates-core",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-use crate::evaluator::{Function, SyntaxError, EvaluationError, Context};
+use rubble_templates_core::evaluator::{Function, SyntaxError, EvaluationError, Context};
 use std::collections::HashMap;
 use crate::evaluator::functions::{SimpleFunction, FunctionWithContext};
 use std::num::ParseFloatError;
@@ -120,8 +120,8 @@ mod tests {
 
     #[test]
     fn should_compile_template() {
-        let expected = fs::read_to_string(PathBuf::from("../test-assets/stdlib-template-expected")).unwrap();
-        let file = PathBuf::from("../test-assets/stdlib-template");
+        let expected = fs::read_to_string(PathBuf::from("test-assets/stdlib-template-expected")).unwrap();
+        let file = PathBuf::from("test-assets/stdlib-template");
         let functions = std_functions();
         let variables: HashMap<String, String> = HashMap::new();
 

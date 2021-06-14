@@ -8,3 +8,9 @@ license = "MIT"
 homepage = "https://github.com/multicatch/rubble-rs"
 repository = "https://github.com/multicatch/rubble-rs"
 documentation = "https://multicatch.github.io/rubble-rs/rubble_templates_core/"
+
+[features]
+default = [ "ast", "evaluator", "compiler" ]
+ast = []
+evaluator = [ "ast" ]
+compiler = [ "evaluator" ]

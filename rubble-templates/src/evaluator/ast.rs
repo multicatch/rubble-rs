@@ -1,79 +1,7 @@
 use crate::template::content::{START_PATTERN, END_PATTERN};
-use std::fmt::{Debug, Display, Formatter};
 use log::{debug, trace, log_enabled, Level};
-
-/// Represents a node in an AST
-///
-/// Used to represent a template code for further evaluation.
-///
-/// Example:
-/// `(plus 1 2)` can be represented as:
-/// ```text
-///     AnonymousNode {
-///         starts_at: 0,
-///         children: vec![
-///              NamedNode {
-///                  identifier: "plus".to_string(),
-///                  starts_at: 1,
-///                  children: vec![
-///                      NamedNode {
-///                          identifier: "1".to_string(),
-///                          starts_at: 6,
-///                          children: vec![],
-///                      },
-///                      NamedNode {
-///                          identifier: "2".to_string(),
-///                          starts_at: 8,
-///                          children: vec![],
-///                      },
-///                  ],
-///              },
-///         ]
-///     };
-/// ```
-///
-#[derive(Clone, Debug, PartialEq)]
-pub enum SyntaxNode {
-    NamedNode {
-        identifier: String,
-        starts_at: Position,
-        children: Vec<SyntaxNode>,
-    },
-    AnonymousNode {
-        starts_at: Position,
-        children: Vec<SyntaxNode>,
-    },
-}
-
-/// Represents a position of node/symbol in template.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Position {
-    /// Used when there is no way to calculate the exact or approximate position.
-    Unknown,
-    /// Used to indicate a position relative to current function invocation.
-    RelativeToInvocation(usize),
-    /// Used to indicate a position relative to the start of currently evaluated block of code.
-    RelativeToCodeStart(usize),
-    /// Used to indicate an absolute position in current template.
-    Absolute(usize),
-}
-
-impl Position {
-    pub fn raw_value(&self) -> Option<usize> {
-        match self {
-            Position::Unknown => None,
-            Position::RelativeToInvocation(pos) => Some(pos),
-            Position::RelativeToCodeStart(pos) => Some(pos),
-            Position::Absolute(pos) => Some(pos),
-        }.cloned()
-    }
-}
-
-impl Display for Position {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+use rubble_templates_core::ast::SyntaxNode;
+use rubble_templates_core::units::Position;
 
 /// Used for parsing AST for further evaluation.
 ///
@@ -142,13 +70,12 @@ fn next_node_of(source: &str, offset: usize, level: usize) -> SyntaxScanResult {
             skip_end = skip_pos;
         } else {
             if char == ' ' || char == ')' {
-                if let Some(node) = syntax_node.add_identifier_or_child(
+                syntax_node = add_identifier_or_child(
+                    syntax_node,
                     &identifier,
                     identifier_start + 1,
                     level,
-                ) {
-                    syntax_node = node;
-                }
+                );
                 identifier.clear();
                 identifier_start = position + 1;
             } else {
@@ -189,66 +116,47 @@ fn extract_string(identifier: String, char: char, string_started: bool) -> (Stri
 
 fn start_node(syntax_node: SyntaxNode, identifier: &str, source_remainder: &str, identifier_start: usize, position: usize, level: usize) -> (SyntaxNode, usize) {
     let mut syntax_node = syntax_node;
-    if let Some(node) = syntax_node.add_identifier_or_child(
+    syntax_node = add_identifier_or_child(
+        syntax_node,
         identifier,
         identifier_start,
         level,
-    ) {
-        syntax_node = node;
-    }
+    );
+
     let SyntaxScanResult(child, skip_pos) = next_node_of(source_remainder, position, level + 1);
-    syntax_node.add_child(child);
+    syntax_node = syntax_node.add_child(child);
 
     (syntax_node, skip_pos)
 }
 
-impl SyntaxNode {
-    fn add_child(&mut self, child: SyntaxNode) {
-        match self {
-            SyntaxNode::AnonymousNode { children, .. } => children.push(child),
-            SyntaxNode::NamedNode { children, .. } => children.push(child),
-        }
+fn add_identifier_or_child(syntax_node: SyntaxNode, new_identifier: &str, identifier_starts_at: usize, level: usize) -> SyntaxNode {
+    if new_identifier.is_empty() {
+        return syntax_node;
     }
 
-    fn add_identifier_or_child(&self, new_identifier: &str, identifier_starts_at: usize, level: usize) -> Option<SyntaxNode> {
-        if new_identifier.is_empty() {
-            return None;
-        }
+    trace!("{:->width$}+\"{}\" at {}", "", new_identifier, identifier_starts_at, width = level);
 
-        trace!("{:->width$}+\"{}\" at {}", "", new_identifier, identifier_starts_at, width = level);
-        match self {
-            SyntaxNode::AnonymousNode { children, .. } =>
-                Some(SyntaxNode::NamedNode {
-                    identifier: new_identifier.to_string(),
-                    children: children.clone(),
-                    starts_at: Position::RelativeToCodeStart(identifier_starts_at),
-                }),
+    if syntax_node.is_anonymous() {
+        syntax_node.with_identifier(new_identifier, Position::RelativeToCodeStart(identifier_starts_at))
 
-            SyntaxNode::NamedNode { identifier, children, starts_at } => {
-                if log_enabled!(Level::Trace) {
-                    trace!("{:->width$}-\"{}\" at {} (child of \"{}\" at {})", "", new_identifier, identifier_starts_at, identifier, starts_at, width = level);
-                }
-                let mut children = children.clone();
-                children.push(SyntaxNode::NamedNode {
-                    identifier: new_identifier.to_string(),
-                    children: vec![],
-                    starts_at: Position::RelativeToCodeStart(identifier_starts_at),
-                });
-                Some(SyntaxNode::NamedNode {
-                    identifier: identifier.clone(),
-                    children,
-                    starts_at: starts_at.clone(),
-                })
-            }
+    } else {
+        if log_enabled!(Level::Trace) {
+            trace!("{:->width$}-\"{}\" at {} (child of {})", "", new_identifier, identifier_starts_at, syntax_node, width = level);
         }
+        syntax_node.add_child(SyntaxNode::NamedNode {
+                identifier: new_identifier.to_string(),
+                children: vec![],
+                starts_at: Position::RelativeToCodeStart(identifier_starts_at),
+            })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::evaluator::ast::{parse_ast, Position};
-    use crate::evaluator::ast::SyntaxNode::{AnonymousNode, NamedNode};
+    use crate::evaluator::ast::parse_ast;
+    use rubble_templates_core::ast::SyntaxNode::{AnonymousNode, NamedNode};
     use log::LevelFilter;
+    use rubble_templates_core::units::Position;
 
     fn init() {
         let _ = env_logger::builder()

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
-use crate::evaluator::ast::{SyntaxNode, Position};
-use crate::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Context};
+use rubble_templates_core::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Context};
+use rubble_templates_core::ast::SyntaxNode;
+use rubble_templates_core::units::Position;
 
 /// Simple evaluation engine providing basic features like variable and function evaluation.
 ///
@@ -104,8 +105,9 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::evaluator::engine::{SyntaxError, SimpleEvaluationEngine};
-    use crate::evaluator::ast::{SyntaxNode, Position};
-    use crate::evaluator::{Evaluator, Function, EvaluationError, Context};
+    use rubble_templates_core::ast::SyntaxNode;
+    use rubble_templates_core::evaluator::{Evaluator, Function, EvaluationError, Context};
+    use rubble_templates_core::units::Position;
 
     #[test]
     fn should_evaluate_variable() {
