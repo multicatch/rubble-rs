@@ -153,7 +153,7 @@ fn add_identifier_or_child(syntax_node: SyntaxNode, new_identifier: &str, identi
 
 #[cfg(test)]
 mod tests {
-    use crate::evaluator::ast::parse_ast;
+    use crate::evaluator::parser::parse_ast;
     use rubble_templates_core::ast::SyntaxNode::{AnonymousNode, NamedNode};
     use log::LevelFilter;
     use rubble_templates_core::units::Position;
