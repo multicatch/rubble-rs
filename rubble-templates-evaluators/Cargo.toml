@@ -18,7 +18,7 @@ simple = []
 
 [dependencies]
 log = { version = "0.4", features = ["std", "serde"] }
-rubble-templates-core = { path = "../rubble-templates-core", version = "=0.2.0", features = ["ast", "evaluator"] }
+rubble-templates-core = { path = "../rubble-templates-core", version = "0.2.0", features = ["ast", "evaluator"] }
 
 [dev-dependencies]
 env_logger = { version = "0.8.3" }

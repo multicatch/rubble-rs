@@ -14,8 +14,8 @@ exclude = [
 ]
 
 [dependencies]
-rubble-templates-core = { path = "../rubble-templates-core", version = "=0.2.0", features = ["ast", "evaluator", "compiler"] }
-rubble-templates-evaluators = { path = "../rubble-templates-evaluators", version = "=0.2.0", features = [ "simple" ] }
+rubble-templates-core = { path = "../rubble-templates-core", version = "0.2.0", features = ["ast", "evaluator", "compiler"] }
+rubble-templates-evaluators = { path = "../rubble-templates-evaluators", version = "0.2.0", features = [ "simple" ] }
 
 [dev-dependencies]
 env_logger = { version = "0.8.3" }
