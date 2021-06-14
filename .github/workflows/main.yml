@@ -28,7 +28,7 @@ jobs:
         run: cargo build --release
 
       - name: Build documentation
-        run: cargo doc
+        run: cargo doc --no-deps
 
       - name: Upload compiled files
         uses: actions/upload-artifact@v2
@@ -80,6 +80,6 @@ jobs:
           path: target
 
       - name: Publish to crates.io
-        run: cargo login $CRATES_TOKEN && cargo publish
-        env:
-          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+        uses: katyo/publish-crates@v1
+        with:
+          registry-token: ${{ secrets.CRATES_TOKEN }}
