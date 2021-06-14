@@ -1,7 +1,9 @@
-use crate::template::content::{START_PATTERN, END_PATTERN};
 use log::{debug, trace, log_enabled, Level};
 use rubble_templates_core::ast::SyntaxNode;
 use rubble_templates_core::units::Position;
+
+pub const START_PATTERN: &str = "{{";
+pub const END_PATTERN: &str = "}}";
 
 /// Used for parsing AST for further evaluation.
 ///
@@ -153,10 +155,10 @@ fn add_identifier_or_child(syntax_node: SyntaxNode, new_identifier: &str, identi
 
 #[cfg(test)]
 mod tests {
-    use crate::evaluator::parser::parse_ast;
     use rubble_templates_core::ast::SyntaxNode::{AnonymousNode, NamedNode};
     use log::LevelFilter;
     use rubble_templates_core::units::Position;
+    use crate::parser::parse_ast;
 
     fn init() {
         let _ = env_logger::builder()

@@ -2,4 +2,5 @@
 members = [
     "rubble-templates",
     "rubble-templates-core",
+    "rubble-templates-evaluators",
 ]

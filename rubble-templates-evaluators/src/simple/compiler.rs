@@ -1,10 +1,9 @@
-use crate::template::Template;
-use crate::evaluator::parser::parse_ast;
 use rubble_templates_core::evaluator::{Context, Evaluator};
 use rubble_templates_core::template::{EvaluableMixedContent, TemplateSlice};
-use crate::template::content::EvaluableMixedContentIterator;
 use rubble_templates_core::compiler::{CompilationError, Compiler};
 use rubble_templates_core::units::Position;
+use crate::simple::template::{Template, EvaluableMixedContentIterator};
+use crate::parser::parse_ast;
 
 pub struct TemplateCompiler<E: Evaluator> {
     engine: E
@@ -50,12 +49,13 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
 
 #[cfg(test)]
 mod tests {
-    use crate::template::Template;
-    use crate::evaluator::engine::SimpleEvaluationEngine;
     use std::collections::HashMap;
-    use crate::compiler::{TemplateCompiler, Compiler, CompilationError};
     use rubble_templates_core::evaluator::{Context, SyntaxError, EvaluationError};
     use rubble_templates_core::units::Position;
+    use crate::simple::template::Template;
+    use crate::simple::evaluator::SimpleEvaluationEngine;
+    use crate::simple::compiler::TemplateCompiler;
+    use rubble_templates_core::compiler::{Compiler, CompilationError};
 
     #[test]
     fn should_compile_template() {
@@ -80,8 +80,8 @@ mod tests {
 
         assert_eq!(result, Err(CompilationError::EvaluationFailed {
             error: SyntaxError::at_position(Position::RelativeToCodeStart(1), EvaluationError::UnknownSymbol {
-                    symbol: "variable".to_string()
-                }
+                symbol: "variable".to_string()
+            }
             ),
             position: Position::Absolute(13),
             source: "{{ variable }}".to_string()

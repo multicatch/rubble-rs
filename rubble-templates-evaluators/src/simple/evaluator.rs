@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use rubble_templates_core::evaluator::{Function, SyntaxError, Evaluator, EvaluationError, Context};
-use rubble_templates_core::ast::SyntaxNode;
+use rubble_templates_core::evaluator::{Function, Context, SyntaxError, Evaluator, EvaluationError};
 use rubble_templates_core::units::Position;
+use rubble_templates_core::ast::SyntaxNode;
 
 /// Simple evaluation engine providing basic features like variable and function evaluation.
 ///
@@ -103,11 +103,10 @@ fn extract_literal(source: &str) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-
-    use crate::evaluator::engine::{SyntaxError, SimpleEvaluationEngine};
     use rubble_templates_core::ast::SyntaxNode;
-    use rubble_templates_core::evaluator::{Evaluator, Function, EvaluationError, Context};
+    use rubble_templates_core::evaluator::{Evaluator, Function, EvaluationError, Context, SyntaxError};
     use rubble_templates_core::units::Position;
+    use crate::simple::evaluator::SimpleEvaluationEngine;
 
     #[test]
     fn should_evaluate_variable() {

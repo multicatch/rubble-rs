@@ -1,5 +1,5 @@
-use rubble_templates_core::evaluator::{Function, Evaluator, SyntaxError, Context};
-use rubble_templates_core::ast::SyntaxNode;
+use crate::evaluator::{Function, Evaluator, SyntaxError, Context};
+use crate::ast::SyntaxNode;
 
 /// A wrapper for a `Fn(&[String]) -> String`, to be used in [Evaluator].
 ///
@@ -8,9 +8,7 @@ use rubble_templates_core::ast::SyntaxNode;
 /// ```
 /// use rubble_templates_core::evaluator::{Evaluator, Function, SyntaxError};
 /// use std::collections::HashMap;
-/// use rubble_templates::template::Template;
-/// use rubble_templates::compile_template_from_string;
-/// use rubble_templates::evaluator::functions::SimpleFunction;
+/// use rubble_templates_core::functions::SimpleFunction;
 ///
 /// fn plus_function(parameters: &[String]) -> String {
 ///     parameters.iter()
@@ -23,11 +21,6 @@ use rubble_templates_core::ast::SyntaxNode;
 ///
 /// let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
 /// functions.insert("plus".to_string(), SimpleFunction::new(plus_function)); // will be treated as Box<dyn Function>
-///
-/// let variables: HashMap<String, String> = HashMap::new();
-///
-/// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
-/// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
 pub struct SimpleFunction<F> where F: Fn(&[String]) -> String {
     function: F
@@ -55,10 +48,8 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// Example:
 /// ```
 /// use std::collections::HashMap;
-/// use rubble_templates::template::Template;
-/// use rubble_templates::compile_template_from_string;
-/// use rubble_templates::evaluator::functions::FunctionWithContext;
 /// use rubble_templates_core::evaluator::{Context, SyntaxError, Function};
+/// use rubble_templates_core::functions::FunctionWithContext;
 ///
 /// fn plus_function(parameters: &[String], _context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
@@ -74,10 +65,6 @@ impl<F> Function for SimpleFunction<F> where F: Fn(&[String]) -> String {
 /// let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
 /// functions.insert("plus".to_string(), FunctionWithContext::new(plus_function)); // will be treated as Box<dyn Function>
 ///
-/// let variables: HashMap<String, String> = HashMap::new();
-///
-/// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
-/// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
 pub struct FunctionWithContext<F> where F: Fn(&[String], &mut Context) -> Result<String, SyntaxError> {
     function: F
@@ -106,10 +93,8 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context)
 /// ```
 /// use rubble_templates_core::evaluator::{Evaluator, Function, SyntaxError, Context};
 /// use std::collections::HashMap;
-/// use rubble_templates::template::Template;
-/// use rubble_templates::compile_template_from_string;
-/// use rubble_templates::evaluator::functions::FunctionWithAst;
 /// use rubble_templates_core::ast::SyntaxNode;
+/// use rubble_templates_core::functions::FunctionWithAst;
 ///
 /// fn plus_function(evaluator: &dyn Evaluator, parameters: &[SyntaxNode], context: &mut Context) -> Result<String, SyntaxError> {
 ///     Ok(
@@ -125,10 +110,6 @@ impl<F> Function for FunctionWithContext<F> where F: Fn(&[String], &mut Context)
 /// let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
 /// functions.insert("plus".to_string(), FunctionWithAst::new(plus_function)); // will be treated as Box<dyn Function>
 ///
-/// let variables: HashMap<String, String> = HashMap::new();
-///
-/// let result = compile_template_from_string("2 + 2 = {{ plus 2 2 }}".to_string(), variables, functions);
-/// assert_eq!(result.ok(), Some("2 + 2 = 4".to_string()));
 /// ```
 pub struct FunctionWithAst<F> where F: Fn(&dyn Evaluator, &[SyntaxNode], &mut Context) -> Result<String, SyntaxError> {
     function: F

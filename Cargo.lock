@@ -98,13 +98,22 @@ name = "rubble-templates"
 version = "0.1.3"
 dependencies = [
  "env_logger",
- "log",
  "rubble-templates-core",
+ "rubble-templates-evaluators",
 ]
 
 [[package]]
 name = "rubble-templates-core"
 version = "0.1.3"
+
+[[package]]
+name = "rubble-templates-evaluators"
+version = "0.1.3"
+dependencies = [
+ "env_logger",
+ "log",
+ "rubble-templates-core",
+]
 
 [[package]]
 name = "serde"

@@ -1,16 +1,13 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
 use rubble_templates_core::evaluator::{Function, Context};
-use crate::template::Template;
-use crate::evaluator::engine::SimpleEvaluationEngine;
 use std::error::Error;
 use rubble_templates_core::compiler::{CompilationError, Compiler};
-use crate::compiler::TemplateCompiler;
+use rubble_templates_evaluators::simple::template::Template;
+use rubble_templates_evaluators::simple::evaluator::SimpleEvaluationEngine;
+use rubble_templates_evaluators::simple::compiler::TemplateCompiler;
 
-pub mod template;
-pub mod evaluator;
-pub mod compiler;
-pub mod functions;
+pub mod std_fun;
 
 /// Compiles template from file.
 ///
@@ -62,7 +59,7 @@ mod tests {
     use std::path::PathBuf;
     use std::collections::HashMap;
     use rubble_templates_core::evaluator::Function;
-    use crate::evaluator::functions::SimpleFunction;
+    use rubble_templates_core::functions::SimpleFunction;
 
     #[test]
     fn should_compile_template() {

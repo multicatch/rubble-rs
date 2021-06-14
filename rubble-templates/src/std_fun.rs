@@ -1,6 +1,6 @@
 use rubble_templates_core::evaluator::{Function, SyntaxError, EvaluationError, Context};
 use std::collections::HashMap;
-use crate::evaluator::functions::{SimpleFunction, FunctionWithContext};
+use rubble_templates_core::functions::{SimpleFunction, FunctionWithContext};
 use std::num::ParseFloatError;
 
 const EMPTY_STRING: &str = "";
@@ -115,7 +115,7 @@ mod tests {
     use crate::compile_template_from_file;
     use std::path::PathBuf;
     use std::collections::HashMap;
-    use crate::functions::std_functions;
+    use crate::std_fun::std_functions;
     use std::fs;
 
     #[test]

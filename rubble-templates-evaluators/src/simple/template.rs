@@ -1,5 +1,31 @@
-use crate::template::Template;
-use rubble_templates_core::template::{EvaluableMixedContent, TemplateSlice};
+use std::{fs, io};
+use std::path::Path;
+use rubble_templates_core::template::{TemplateSlice, EvaluableMixedContent};
+
+/// A simple template that represents a source text.
+///
+/// This template is a raw template that can be reused with different variables or Evaluators.
+/// It contains a raw source that can be parsed.
+#[derive(Debug, Eq, PartialEq)]
+pub struct Template {
+    pub raw_content: String
+}
+
+impl Template {
+    pub fn read_from(path: &Path) -> Result<Template, io::Error> {
+        let raw_content = fs::read_to_string(path)?;
+        Ok(Template {
+            raw_content
+        })
+    }
+
+    pub fn from(raw_content: String) -> Template {
+        Template {
+            raw_content
+        }
+    }
+}
+
 
 /// Iterates over some template source and returns code fragments that needs evaluation.
 ///
@@ -30,8 +56,8 @@ pub(crate) const END_PATTERN: &str = "}}";
 /// Used to iterate over a template and extract all code blocks.
 ///
 /// ```
-/// use rubble_templates::template::Template;
 /// use rubble_templates_core::template::{EvaluableMixedContent, TemplateSlice};
+/// use rubble_templates_evaluators::simple::template::Template;
 ///
 /// let template = Template::from("Some template {{ variable }}".to_string());
 /// let all_evaluation_spots: Vec<TemplateSlice> = template.into_iter().collect();
@@ -94,9 +120,21 @@ impl<'a> Iterator for EvaluableMixedContentIterator<'a, Template> {
 
 #[cfg(test)]
 mod tests {
-    use crate::template::Template;
-    use crate::template::content::TemplateSlice;
     use std::path::PathBuf;
+
+    use rubble_templates_core::template::TemplateSlice;
+    use crate::simple::template::Template;
+
+    #[test]
+    fn should_create_template() {
+        let path_buf = PathBuf::from("test-assets/simple-template");
+        let result = Template::read_from(&path_buf);
+
+        let expected = Template::from("Some template {{ variable }} - or something".to_string());
+
+        let result = result.map_err(|e| e.kind());
+        assert_eq!(result, Ok(expected));
+    }
 
     #[test]
     fn should_find_all_evaluation_spots() {
