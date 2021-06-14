@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["EvaluableMixedContentIterator","Iterates over some template source and returns code fragments that needs evaluation."],["Template","A simple template that represents a source text."]]});

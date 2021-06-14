@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CompilationError",""]],"trait":[["Compiler","Describes a struct that is able to compile a template."]]});

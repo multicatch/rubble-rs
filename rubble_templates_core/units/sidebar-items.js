@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Position","Represents a position of node/symbol in template."]]});

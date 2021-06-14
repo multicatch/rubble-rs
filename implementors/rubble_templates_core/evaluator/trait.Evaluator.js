@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["rubble_templates_evaluators"] = [{"text":"impl <a class=\"trait\" href=\"rubble_templates_core/evaluator/trait.Evaluator.html\" title=\"trait rubble_templates_core::evaluator::Evaluator\">Evaluator</a> for <a class=\"struct\" href=\"rubble_templates_evaluators/simple/evaluator/struct.SimpleEvaluationEngine.html\" title=\"struct rubble_templates_evaluators::simple::evaluator::SimpleEvaluationEngine\">SimpleEvaluationEngine</a>","synthetic":false,"types":["rubble_templates_evaluators::simple::evaluator::SimpleEvaluationEngine"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["cfg_if","log","rubble_templates","serde"];
+window.ALL_CRATES = ["rubble_templates","rubble_templates_core","rubble_templates_evaluators"];
