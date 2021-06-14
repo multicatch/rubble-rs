@@ -1,6 +1,6 @@
 # rubble-templates
 
-A template engine in Rust. Allows compiling text templates into output text.
+A template engine in Rust. Allows compiling text templates into output text using variable substitution or code evaluation.
 
 ## What does it do?
 
