@@ -1,0 +1,10 @@
+[package]
+name = "rubble-templates-core"
+description = "A template engine to compile text and evaluate code from template files"
+version = "0.1.3"
+authors = ["multicatch <cezaryre@gmail.com>"]
+edition = "2018"
+license = "MIT"
+homepage = "https://github.com/multicatch/rubble-rs"
+repository = "https://github.com/multicatch/rubble-rs"
+documentation = "https://multicatch.github.io/rubble-rs/rubble_templates_core/"

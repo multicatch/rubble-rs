@@ -2,4 +2,4 @@
 .idea
 *.iml
 .DS_Store
-Cargo.lock
+rubble-templates/Cargo.lock

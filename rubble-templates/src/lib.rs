@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn should_compile_template() {
-        let file = PathBuf::from("test-assets/complex-template");
+        let file = PathBuf::from("../test-assets/complex-template");
         let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
         functions.insert("plus".to_string(), SimpleFunction::new(plus_function));
 

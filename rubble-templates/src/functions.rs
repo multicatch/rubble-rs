@@ -120,8 +120,8 @@ mod tests {
 
     #[test]
     fn should_compile_template() {
-        let expected = fs::read_to_string(PathBuf::from("test-assets/stdlib-template-expected")).unwrap();
-        let file = PathBuf::from("test-assets/stdlib-template");
+        let expected = fs::read_to_string(PathBuf::from("../test-assets/stdlib-template-expected")).unwrap();
+        let file = PathBuf::from("../test-assets/stdlib-template");
         let functions = std_functions();
         let variables: HashMap<String, String> = HashMap::new();
 
