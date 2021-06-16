@@ -29,41 +29,20 @@ pub mod strings;
 
 use rubble_templates_core::evaluator::Function;
 use std::collections::HashMap;
-use rubble_templates_core::functions::SimpleFunction;
 use crate::std_fun::math::math_functions;
-use crate::std_fun::strings::EMPTY_STRING;
+use crate::std_fun::strings::string_functions;
 
 /// Provides a set of standard functions.
 ///
 /// This is a cumulative set of the following functions:
 /// * [`math_functions`](math_functions) - All math-related functions.
-/// * and the following functions.
+/// * [`string_functions`](string_functions) - All math-related functions.
 ///
-/// Available functions:
-/// * [`concat`](concat_function) - Concatenates parameters.
 pub fn std_functions() -> HashMap<String, Box<dyn Function>> {
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
     functions.extend(math_functions());
-    functions.insert("concat".to_string(), SimpleFunction::new(concat_function));
+    functions.extend(string_functions());
     functions
-}
-
-/// Concatenates the parameters.
-///
-/// Eg.
-/// ```text
-/// concat 1 "hello" " " 3.14 "world!"
-/// ```
-/// Expected output:
-/// ```text
-/// 1hello 3.14world!
-/// ```
-pub fn concat_function(parameters: &[String]) -> String {
-    let mut result = EMPTY_STRING.to_string();
-    parameters.iter().for_each(|param| {
-        result.push_str(param);
-    });
-    result
 }
 
 #[cfg(test)]

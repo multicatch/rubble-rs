@@ -1,4 +1,8 @@
+Strings
 Concat: 12 hello world!
+Trim: hellotexttext
+
+Math
 Plus: 6.3
 Plus (concat): 3abc3
 Minus: 5.9
