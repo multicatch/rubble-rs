@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["parser","Default parser logic"],["simple",""]]});
+initSidebarItems({"mod":[["parser","Default parser logic"],["simple","Set of basic evaluators and compilers for templates"]]});

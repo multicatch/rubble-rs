@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["compiler",""],["evaluator",""],["template",""]]});
+initSidebarItems({"mod":[["compiler","Compiler for `Template`, evaluates code blocks and joins everything"],["evaluator","Evaluator compatible with `Template` and core AST representation"],["template","Simple representation of text template that will be evaluated"]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["END_PATTERN",""],["START_PATTERN",""]],"fn":[["parse_ast","Used for parsing AST for further evaluation."]]});
+initSidebarItems({"fn":[["parse_ast","Used for parsing AST for further evaluation."]]});
