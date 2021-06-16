@@ -171,7 +171,7 @@ mod tests {
         init();
 
         let input = "{{ (list 1 2 (if a b c)) }}";
-        let actual = parse_ast(input);
+        let actual = parse_ast(input,"{{", "}}");
 
         let expected = AnonymousNode {
             starts_at: Position::RelativeToCodeStart(0),
