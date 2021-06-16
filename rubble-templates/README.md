@@ -77,8 +77,8 @@ The result is: {{ multiply (plus 1 2) 3 }}
 The above functions are the example functions and are not actual functions that are available out-of-the-box.
 They might be added in the future releases however.
 
-**Note**: The code blocks are matched by finding `{{` and terminated by the first occurrence of `}}`. 
-To use `}}` or `"` in strings please refer to standard functions (ie. [`std_function`](https://multicatch.github.io/rubble-rs/rubble_templates/std_fun/strings/fn.string_functions.html)).
+**Note**: The code blocks are matched by finding `{{` and terminated by the first occurrence of `}}`.
+To use `}}` or `"` in strings please refer to standard functions (i.e. [`string_functions`](https://multicatch.github.io/rubble-rs/rubble_templates/std_fun/strings/fn.string_functions.html)).
 
 ### Standard functions
 
