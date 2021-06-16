@@ -127,6 +127,7 @@ pub fn modulo_function(parameters: &[String], _context: &mut Context) -> Result<
     reduce_numbers(parameters, |a, b| a % b)
 }
 
+/// Converts parameters to f64 and applies given reduce function
 pub fn reduce_numbers<F>(parameters: &[String], f: F) -> Result<String, SyntaxError>
     where F: Fn(f64, f64) -> f64 {
     let (index, numbers) = as_numbers(parameters);
@@ -147,6 +148,7 @@ pub fn reduce_numbers<F>(parameters: &[String], f: F) -> Result<String, SyntaxEr
     }
 }
 
+/// Converts parameters to f64 and returns index of inconvertible parameter and result of conversion
 pub fn as_numbers(parameters: &[String]) -> (usize, Result<Vec<f64>, ParseFloatError>) {
     let mut index: usize = 0;
     let numbers: Result<Vec<f64>, ParseFloatError> = parameters.iter()

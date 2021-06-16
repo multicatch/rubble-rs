@@ -13,8 +13,8 @@ pub const EMPTY_STRING: &str = "";
 /// Available functions:
 /// * [`concat`](concat_function) - Concatenates parameters.
 /// * [`trim`](trim_function) - Trims parameters.
-/// * [`$}`](right_brackets_function) - Inserts "}}".
-/// * [`$quote`](right_brackets_function) - Inserts double qoutes (").
+/// * [`$}`](right_brackets_function) - Inserts `}}`.
+/// * [`$quote`](quotes_function) - Inserts double qoutes `"`.
 pub fn string_functions() -> HashMap<String, Box<dyn Function>> {
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
     functions.insert("concat".to_string(), SimpleFunction::new(concat_function));
@@ -63,7 +63,7 @@ pub fn trim_function(parameters: &[String]) -> String {
     result
 }
 
-/// Inserts "}}". Ignores the parameters.
+/// Inserts `}}`. Ignores the parameters.
 ///
 /// Eg.
 /// ```text
@@ -79,7 +79,7 @@ pub fn right_brackets_function(_: &[String]) -> String {
     "}}".to_string()
 }
 
-/// Inserts ". Ignores the parameters.
+/// Inserts `"`. Ignores the parameters.
 ///
 /// Eg.
 /// ```text
