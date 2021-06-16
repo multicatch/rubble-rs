@@ -1,8 +1,10 @@
+//! Compiler for [`Template`](crate::simple::template::Template), evaluates code blocks and joins everything
+
 use rubble_templates_core::evaluator::{Context, Evaluator};
 use rubble_templates_core::template::{EvaluableMixedContent, TemplateSlice};
 use rubble_templates_core::compiler::{CompilationError, Compiler};
 use rubble_templates_core::units::Position;
-use crate::simple::template::{Template, EvaluableMixedContentIterator};
+use crate::simple::template::{Template, EvaluableMixedContentIterator, START_PATTERN, END_PATTERN};
 use crate::parser::parse_ast;
 
 pub struct TemplateCompiler<E: Evaluator> {
@@ -32,7 +34,7 @@ impl<'a, E> Compiler<&'a Template> for TemplateCompiler<E> where E: Evaluator {
             let compiled = match item {
                 TemplateSlice::Text { value, .. } => value.to_string(),
                 TemplateSlice::Code { value, start_position, .. } => self.engine
-                    .evaluate(&parse_ast(value), context)
+                    .evaluate(&parse_ast(value, START_PATTERN, END_PATTERN), context)
                     .map_err(|err| CompilationError::EvaluationFailed {
                         error: err,
                         position: Position::Absolute(start_position),

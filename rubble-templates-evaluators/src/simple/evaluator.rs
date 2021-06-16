@@ -1,3 +1,5 @@
+//! Evaluator compatible with [`Template`](crate::simple::template::Template) and core AST representation
+
 use std::collections::HashMap;
 use rubble_templates_core::evaluator::{Function, Context, SyntaxError, Evaluator, EvaluationError};
 use rubble_templates_core::units::Position;

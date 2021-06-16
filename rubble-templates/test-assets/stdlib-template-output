@@ -1,0 +1,19 @@
+Strings
+Concat: 12 hello world!
+Trim: hellotexttext
+
+How to use brackets in code:
+With concat: }}
+Shorter version: }}
+
+How to use double quotes in code:
+"
+Hello "world"!
+
+Math
+Plus: 6.3
+Plus (concat): 3abc3
+Minus: 5.9
+Multiply: 57.6
+Divide: 7.5
+Modulo: 3

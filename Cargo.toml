@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "rubble-templates",
-    "rubble-templates-core",
     "rubble-templates-evaluators",
+    "rubble-templates-core",
+    "rubble-templates",
 ]

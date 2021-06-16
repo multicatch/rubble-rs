@@ -62,7 +62,7 @@ All function calls look like the following:
 function_name arg0 arg1 arg2
 ```
 
-To call a `plus` function (that can be hypothetically implemented) to calculate the result of 2 + 2 you will need to write
+To call a `plus` function to calculate the result of 2 + 2 you will need to write
 ```text
 The result is: {{ plus 2 2 }}
 ```
@@ -74,13 +74,18 @@ For example, given `plus` and `multiply` functions, you will need to use the fol
 The result is: {{ multiply (plus 1 2) 3 }}
 ```
 
-*Note*: The above functions are the example functions and are not actual functions that are available out-of-the-box.
+The above functions are the example functions and are not actual functions that are available out-of-the-box.
 They might be added in the future releases however.
+
+**Note**: The code blocks are matched by finding `{{` and terminated by the first occurrence of `}}`. 
+To use `}}` or `"` in strings please refer to standard functions (ie. [`std_function`](https://multicatch.github.io/rubble-rs/rubble_templates/std_fun/strings/fn.string_functions.html)).
 
 ### Standard functions
 
 A set of standard, built-in functions is still being expanded. 
 To see current list of standard functions, refer to the [rubble-templates documentation](https://multicatch.github.io/rubble-rs/rubble_templates/std_fun/index.html).
+
+The `std_fun` module contains basic math and string functions. Each function has usage examples in the documentation.
 
 ### Customizing
 
