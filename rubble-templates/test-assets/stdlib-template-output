@@ -5,6 +5,7 @@ Trim: hellotexttext
 How to use brackets in code:
 With concat: }}
 Shorter version: }}
+{{ hello }}
 
 How to use double quotes in code:
 "
