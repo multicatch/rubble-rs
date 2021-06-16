@@ -1,3 +1,13 @@
+//! Simple representation of text template that will be evaluated
+//!
+//! Code blocks are indicated by {{ and }}.
+//! After matching "{{", it does not check whether the code is actually completed,
+//! it looks for the first match of "}}" to complete the code block.
+//!
+//! To use "}}" or " (double quotes) in code, please use standard functions
+//! (see [`std_functions`](rubble-templates::std_fun::std_functions)
+//! and [`string_functions`](rubble-templates::std_fun::std_functions::strings::string_functions) for more info).
+
 use std::{fs, io};
 use std::path::Path;
 use rubble_templates_core::template::{TemplateSlice, EvaluableMixedContent};

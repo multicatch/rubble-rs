@@ -4,9 +4,6 @@ use log::{debug, trace, log_enabled, Level};
 use rubble_templates_core::ast::SyntaxNode;
 use rubble_templates_core::units::Position;
 
-pub const START_PATTERN: &str = "{{";
-pub const END_PATTERN: &str = "}}";
-
 /// Used for parsing AST for further evaluation.
 ///
 /// This function tries to parse AST assuming it is Lisp-like syntax, which is practically
@@ -23,12 +20,12 @@ pub const END_PATTERN: &str = "}}";
 /// * `(function 1 2 3)` - interpreted as `function` call with parameters `1`, `2` and `3`
 /// * `plus 1 2 (times 3 4)` - interpreted as `1 + 2 + (3 * 4)`, given `plus` is an addition function and `times` is a multiplication function
 ///
-pub fn parse_ast(source: &str) -> SyntaxNode {
+pub fn parse_ast(source: &str, code_start: &str, code_end: &str) -> SyntaxNode {
     if log_enabled!(Level::Debug) {
         debug!("Starting to parse AST of: {}", source);
     }
-    let source = source.strip_prefix(START_PATTERN).unwrap_or(source);
-    let source = source.strip_suffix(END_PATTERN).unwrap_or(source);
+    let source = source.strip_prefix(code_start).unwrap_or(source);
+    let source = source.strip_suffix(code_end).unwrap_or(source);
 
     let result = next_node_of(source, 0, 0).0;
     if log_enabled!(Level::Debug) {

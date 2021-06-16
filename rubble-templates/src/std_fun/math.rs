@@ -1,3 +1,7 @@
+//! Provides standard math functions.
+//!
+//! See [`std_fun`](rubble-templates::std_fun) or [`math_functions`] for more info.
+//!
 use std::collections::HashMap;
 use rubble_templates_core::evaluator::{Function, Context, SyntaxError, EvaluationError};
 use rubble_templates_core::functions::{SimpleFunction, FunctionWithContext};

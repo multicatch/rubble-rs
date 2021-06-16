@@ -23,6 +23,9 @@
 //! ```
 //!
 //! See [rubble_templates_core::functions] for more info on how to implement custom [Function]s.
+//!
+//! Example usages are in the [test-assets](https://github.com/multicatch/rubble-rs/tree/master/rubble-templates/test-assets).
+//! See the "stdlib-template" and "stdlib-template-output" to see standard functions in action.
 
 pub mod math;
 pub mod strings;
@@ -55,7 +58,7 @@ mod tests {
 
     #[test]
     fn should_compile_template() {
-        let expected = fs::read_to_string(PathBuf::from("test-assets/stdlib-template-expected")).unwrap();
+        let expected = fs::read_to_string(PathBuf::from("test-assets/stdlib-template-output")).unwrap();
         let file = PathBuf::from("test-assets/stdlib-template");
         let functions = std_functions();
         let variables: HashMap<String, String> = HashMap::new();

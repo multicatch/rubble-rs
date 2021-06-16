@@ -2,6 +2,14 @@ Strings
 Concat: {{ concat 1 2 " " "hello" " " "world!" }}
 Trim: {{ trim " hello " "   text" "text  " }}
 
+How to use brackets in code:
+With concat: {{ concat "}" "}" }}
+Shorter version: {{ $} }}
+
+How to use double quotes in code:
+{{ $quote }}
+{{ concat "Hello " $quote "world" $quote "!" }}
+
 Math
 Plus: {{ + 1 2 3.3 }}
 Plus (concat): {{ + 1 2 "abc" 3 }}
