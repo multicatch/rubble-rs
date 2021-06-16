@@ -2,3 +2,6 @@ Concat: 12 hello world!
 Plus: 6.3
 Plus (concat): 3abc3
 Minus: 5.9
+Multiply: 57.6
+Divide: 7.5
+Modulo: 3

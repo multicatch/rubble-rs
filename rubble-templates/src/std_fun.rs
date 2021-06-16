@@ -24,24 +24,27 @@
 //!
 //! See [rubble_templates_core::functions] for more info on how to implement custom [Function]s.
 
-use rubble_templates_core::evaluator::{Function, SyntaxError, EvaluationError, Context};
-use std::collections::HashMap;
-use rubble_templates_core::functions::{SimpleFunction, FunctionWithContext};
-use std::num::ParseFloatError;
+pub mod math;
+pub mod strings;
 
-const EMPTY_STRING: &str = "";
+use rubble_templates_core::evaluator::Function;
+use std::collections::HashMap;
+use rubble_templates_core::functions::SimpleFunction;
+use crate::std_fun::math::math_functions;
+use crate::std_fun::strings::EMPTY_STRING;
 
 /// Provides a set of standard functions.
 ///
+/// This is a cumulative set of the following functions:
+/// * [`math_functions`](math_functions) - All math-related functions.
+/// * and the following functions.
+///
 /// Available functions:
 /// * [`concat`](concat_function) - Concatenates parameters.
-/// * [`+`](plus_function) - Adds the parameters or concatenates them if it fails.
-/// * [`-`](minus_function) - Subtracts the parameters.
 pub fn std_functions() -> HashMap<String, Box<dyn Function>> {
     let mut functions: HashMap<String, Box<dyn Function>> = HashMap::new();
+    functions.extend(math_functions());
     functions.insert("concat".to_string(), SimpleFunction::new(concat_function));
-    functions.insert("+".to_string(), SimpleFunction::new(plus_function));
-    functions.insert("-".to_string(), FunctionWithContext::new(minus_function));
     functions
 }
 
@@ -61,83 +64,6 @@ pub fn concat_function(parameters: &[String]) -> String {
         result.push_str(param);
     });
     result
-}
-
-/// Adds (or concatenates) values.
-/// If any of the parameters is not convertible to a number, then the rest will be concatenated.
-///
-/// Eg.
-/// ```text
-/// + 1 2 3.3
-/// + 1 2 "hello" 3.3
-/// ```
-/// Expected output:
-/// ```text
-/// 6.3
-/// 3hello3.3
-/// ```
-pub fn plus_function(parameters: &[String]) -> String {
-    let mut result: String = EMPTY_STRING.to_string();
-    let mut floating_result: Option<f64> = None;
-
-    parameters.iter().for_each(|param| {
-        if result.is_empty() {
-            if let Result::Ok(value) = param.parse::<f64>() {
-                floating_result = Some(floating_result.unwrap_or(0 as f64) + value);
-            } else {
-                if let Some(number) = floating_result
-                    .map(|number| number.to_string()) {
-                    result += &number
-                }
-
-                result.push_str(param);
-            }
-        } else {
-            result.push_str(param);
-        };
-    });
-
-    if result.is_empty() && floating_result.is_some() {
-        floating_result.map(|number| number.to_string()).unwrap()
-    } else {
-        result
-    }
-}
-
-/// Subtracts values.
-/// If any of the parameters is not convertible to a number, then an error will be emitted with the invalid value.
-///
-/// Eg.
-/// ```text
-/// - 8.3 1 1.4
-/// ```
-/// Expected output:
-/// ```text
-/// 5.9
-/// ```
-pub fn minus_function(parameters: &[String], _context: &mut Context) -> Result<String, SyntaxError> {
-    let mut index: usize = 0;
-    let numbers: Result<Vec<f64>, ParseFloatError> = parameters.iter()
-        .map(|number| {
-            index += 1;
-            number.parse::<f64>()
-        })
-        .collect();
-
-    if let Result::Err(error) = numbers {
-        Err(SyntaxError::new(EvaluationError::InvalidValues {
-                description: Some(error.to_string()),
-                values: vec![parameters[index - 1].clone()],
-            })
-        )
-    } else {
-        Ok(numbers.unwrap()
-            .into_iter()
-            .reduce(|a, b| a - b)
-            .unwrap_or(0 as f64)
-            .to_string()
-        )
-    }
 }
 
 #[cfg(test)]
